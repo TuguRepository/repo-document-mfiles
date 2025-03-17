@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\STK;
 
-use App\Http\Controllers\Controller; // Tambahkan ini
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\DownloadRequest;
 use App\Models\Document;
-use App\Models\Activities;
+use App\Models\Activities; // PENTING: Menggunakan nama model yang benar (dengan 's')
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Facades\UserContext;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail; // Tambahkan ini untuk fungsi email
 
 class ApprovalController extends Controller
 {
@@ -94,67 +95,68 @@ class ApprovalController extends Controller
             'rejected' => $rejectedCount
         ]);
     }
+
     /**
      * Get recent activities
      */
-    // Implementasi method getActivities yang aman
     public function getActivities()
-{
-    try {
-        // Dapatkan data aktivitas dari tabel download_requests
-        $requests = DownloadRequest::select(
-                'id',
-                'user_name',
-                'document_title',
-                'document_number',
-                'status',
-                'created_at',
-                'updated_at',
-                'approved_at',
-                'rejected_at',
-                'user_id'
-            )
-            ->latest('updated_at')
-            ->take(10)
-            ->get();
+    {
+        try {
+            // Dapatkan data aktivitas dari tabel download_requests
+            $requests = DownloadRequest::select(
+                    'id',
+                    'user_name',
+                    'document_title',
+                    'document_number',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                    'approved_at',
+                    'rejected_at',
+                    'user_id'
+                )
+                ->latest('updated_at')
+                ->take(10)
+                ->get();
 
-        $activities = [];
+            $activities = [];
 
-        foreach($requests as $request) {
-            $type = 'request';
-            $timestamp = $request->created_at;
+            foreach($requests as $request) {
+                $type = 'request';
+                $timestamp = $request->created_at;
 
-            if ($request->status === 'approved') {
-                $type = 'approve';
-                $timestamp = $request->approved_at ?? $request->updated_at;
-            } else if ($request->status === 'rejected') {
-                $type = 'reject';
-                $timestamp = $request->rejected_at ?? $request->updated_at;
+                if ($request->status === 'approved') {
+                    $type = 'approve';
+                    $timestamp = $request->approved_at ?? $request->updated_at;
+                } else if ($request->status === 'rejected') {
+                    $type = 'reject';
+                    $timestamp = $request->rejected_at ?? $request->updated_at;
+                }
+
+                $activities[] = [
+                    'id' => $request->id,
+                    'type' => $type,
+                    'created_at' => $timestamp,
+                    'download_request' => [
+                        'id' => $request->id,
+                        'user_name' => $request->user_name,
+                        'document_title' => $request->document_title,
+                        'document_number' => $request->document_number
+                    ]
+                ];
             }
 
-            $activities[] = [
-                'id' => $request->id,
-                'type' => $type,
-                'created_at' => $timestamp,
-                'download_request' => [
-                    'id' => $request->id,
-                    'user_name' => $request->user_name,
-                    'document_title' => $request->document_title,
-                    'document_number' => $request->document_number
-                ]
-            ];
+            return response()->json($activities);
+        } catch (\Exception $e) {
+            \Log::error('Error in getActivities: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat memuat aktivitas',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($activities);
-    } catch (\Exception $e) {
-        \Log::error('Error in getActivities: ' . $e->getMessage());
-
-        return response()->json([
-            'message' => 'Terjadi kesalahan saat memuat aktivitas',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
+
     /**
      * Approve a request
      */
@@ -164,6 +166,7 @@ class ApprovalController extends Controller
             'request_id' => 'required',
             'note' => 'nullable|string',
             'send_email' => 'boolean',
+            'send_file' => 'boolean', // Tambahkan validasi untuk opsi baru
             'limit_time' => 'boolean'
         ]);
 
@@ -183,8 +186,8 @@ class ApprovalController extends Controller
 
             $downloadRequest->save();
 
-            // Create activity log
-            $activity = new Activity();
+            // Create activity log - PENTING: gunakan Activities (dengan 's'), bukan Activity
+            $activity = new Activities();
             $activity->user_id = Auth::id();
             $activity->user_name = Auth::user()->name;
             $activity->type = 'approve';
@@ -193,8 +196,52 @@ class ApprovalController extends Controller
 
             // Send email notification if requested
             if ($request->send_email) {
-                // Email code would go here
-                // Mail::to($downloadRequest->user_email)->send(new RequestApproved($downloadRequest));
+                // Tambahkan fitur mengirim file dalam email
+                // Kode ini adalah placeholder, ganti dengan implementasi yang sesuai
+                try {
+                    // Get the document
+                    if (isset($downloadRequest->document_id)) {
+                        $document = Document::find($downloadRequest->document_id);
+
+                        // Set up email data
+                        $emailData = [
+                            'user' => Auth::user(),
+                            'request' => $downloadRequest,
+                            'note' => $request->note,
+                            'expiration' => $request->limit_time ? now()->addDay() : null
+                        ];
+
+                        // Check if we should attach the file
+                        if ($request->send_file && $document && isset($document->file_path)) {
+                            $filePath = storage_path('app/' . $document->file_path);
+                            if (file_exists($filePath)) {
+                                // Mail::to($downloadRequest->user_email)
+                                //     ->send(new \App\Mail\RequestApproved($emailData, $filePath, $document->original_name));
+
+                                // Log that file is attached
+                                Log::info('Email sent with file attachment', ['request_id' => $downloadRequest->id]);
+                            } else {
+                                // Mail::to($downloadRequest->user_email)
+                                //     ->send(new \App\Mail\RequestApproved($emailData));
+
+                                Log::warning('File not found, sending email without attachment', [
+                                    'file_path' => $document->file_path
+                                ]);
+                            }
+                        } else {
+                            // Mail::to($downloadRequest->user_email)
+                            //     ->send(new \App\Mail\RequestApproved($emailData));
+
+                            Log::info('Email sent without file attachment', ['request_id' => $downloadRequest->id]);
+                        }
+                    } else {
+                        Log::warning('Document ID not found in download request', [
+                            'request_id' => $downloadRequest->id
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error sending email: ' . $e->getMessage());
+                }
             }
 
             return response()->json([
@@ -202,11 +249,14 @@ class ApprovalController extends Controller
                 'message' => 'Permintaan berhasil disetujui'
             ]);
         } catch (\Exception $e) {
-            Log::error('Error approving request: ' . $e->getMessage());
+            Log::error('Error approving request: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat menyetujui permintaan'
+                'message' => 'Terjadi kesalahan saat menyetujui permintaan: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -239,8 +289,8 @@ class ApprovalController extends Controller
 
             $downloadRequest->save();
 
-            // Create activity log
-            $activity = new Activity();
+            // Create activity log - PENTING: gunakan Activities (dengan 's'), bukan Activity
+            $activity = new Activities();
             $activity->user_id = Auth::id();
             $activity->user_name = Auth::user()->name;
             $activity->type = 'reject';

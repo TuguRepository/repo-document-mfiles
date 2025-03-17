@@ -2016,6 +2016,7 @@ body {
                 const previewUrl = `/stk/preview/${id}${version ? '/' + version : ''}`;
 
                 // Coba dapatkan informasi dokumen
+
 fetch(`/api/stk/document-info/${id}${version ? '/' + version : ''}`, {
     headers: {
         'Accept': 'application/json',
@@ -2467,7 +2468,7 @@ previewFrame.onload = function() {
                    if (confirm('Apakah Anda yakin ingin keluar?')) {
                        localStorage.clear();
                        sessionStorage.clear();
-                       window.location.href = env('APP_URL_SSO').'/dashboard';
+                       window.location.href = `${env('APP_URL_SSO')}/dashboard`;
                    }
                }
            </script>

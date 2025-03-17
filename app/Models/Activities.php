@@ -1,4 +1,3 @@
-// App/Models/Activity.php
 <?php
 
 namespace App\Models;

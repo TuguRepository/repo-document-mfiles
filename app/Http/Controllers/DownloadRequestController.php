@@ -46,6 +46,7 @@ class DownloadRequestController extends Controller
             $downloadRequest->document_id = $request->document_id;
             $downloadRequest->user_id = Auth::id() ?? 1; // Default ke ID 1 jika tidak login
             $downloadRequest->user_name = $payload['name'] ? $payload['name'] : 'Guest User';
+            $downloadRequest->user_email = $payload['email'] ? $payload['email'] : 'Guest@tugu.com';
 
             // Opsional dengan default
             $downloadRequest->document_version = $request->document_version ?? 'latest';
@@ -65,10 +66,6 @@ class DownloadRequestController extends Controller
 
             if ($request->has('document_number')) {
                 $downloadRequest->document_number = $request->document_number;
-            }
-
-            if ($request->has('user_email')) {
-                $downloadRequest->user_email = $request->user_email;
             }
 
             if ($request->has('notes')) {

@@ -236,3 +236,22 @@
             // ...
             // });
     });
+
+    Route::get('/debug/approve/{id}', function($id) {
+        try {
+            $request = DownloadRequest::findOrFail($id);
+            return [
+                'request' => $request,
+                'document_exists' => isset($request->document_id) && Document::find($request->document_id) ? true : false,
+                'file_path_exists' => isset($request->document_id) &&
+                    Document::find($request->document_id) &&
+                    Document::find($request->document_id)->file_path ? true : false,
+                'file_exists' => isset($request->document_id) &&
+                    Document::find($request->document_id) &&
+                    Document::find($request->document_id)->file_path &&
+                    file_exists(storage_path('app/' . Document::find($request->document_id)->file_path))
+            ];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    });

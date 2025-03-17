@@ -8,6 +8,9 @@
             </div>
             <div class="modal-body">
                 <form id="approveForm">
+                    <!-- Hidden input for request ID -->
+                    <input type="hidden" id="approve-request-id" name="request_id" value="">
+
                     <div class="mb-3">
                         <label for="approvalNote" class="form-label">Catatan (opsional)</label>
                         <textarea class="form-control admin-note" id="approvalNote" name="approval_note" rows="3" placeholder="Tambahkan catatan untuk pemohon..."></textarea>
@@ -18,6 +21,12 @@
                             <input class="form-check-input" type="checkbox" id="sendEmailCheck" name="send_email" checked>
                             <label class="form-check-label" for="sendEmailCheck">
                                 Kirim notifikasi email ke pemohon
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="sendFileCheck" name="send_file" checked>
+                            <label class="form-check-label" for="sendFileCheck">
+                                Sertakan file dokumen dalam email
                             </label>
                         </div>
                         <div class="form-check">

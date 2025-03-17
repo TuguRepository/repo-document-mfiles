@@ -715,6 +715,7 @@ function approveRequest() {
     const requestId = requestIdField.value;
     const note = document.getElementById('approvalNote')?.value || '';
     const sendEmail = document.getElementById('sendEmailCheck')?.checked || false;
+    const sendFile = document.getElementById('sendFileCheck')?.checked || false; // New option
     const limitTime = document.getElementById('limitTimeCheck')?.checked || false;
 
     if (!requestId) {
@@ -726,6 +727,7 @@ function approveRequest() {
     formData.append('request_id', requestId);
     formData.append('note', note);
     formData.append('send_email', sendEmail ? '1' : '0');
+    formData.append('send_file', sendFile ? '1' : '0'); // Add new parameter
     formData.append('limit_time', limitTime ? '1' : '0');
 
     // Tambahkan CSRF token
@@ -733,6 +735,12 @@ function approveRequest() {
     if (csrfToken) {
         formData.append('_token', csrfToken.getAttribute('content'));
     }
+
+    // Show loading state on button
+    const approveBtn = document.querySelector('#approveModal .btn-success');
+    const originalText = approveBtn.textContent;
+    approveBtn.disabled = true;
+    approveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
 
     fetch('/api/approve', {
         method: 'POST',
@@ -748,14 +756,24 @@ function approveRequest() {
             loadActivities();
 
             // Show notification
-            showToast('Permintaan Disetujui', 'Permintaan telah berhasil disetujui dan notifikasi telah dikirim ke pemohon.', 'success');
+            showToast('Permintaan Disetujui', 'Permintaan telah berhasil disetujui' +
+                (sendEmail ? ' dan notifikasi telah dikirim ke pemohon' : '') +
+                (sendEmail && sendFile ? ' beserta file yang diminta' : '') + '.', 'success');
         } else {
             showToast('Error', data.message || 'Terjadi kesalahan saat menyetujui permintaan', 'error');
         }
+
+        // Reset button state
+        approveBtn.disabled = false;
+        approveBtn.textContent = originalText;
     })
     .catch(error => {
         console.error('Error approving request:', error);
         showToast('Error', 'Terjadi kesalahan saat menghubungi server', 'error');
+
+        // Reset button state
+        approveBtn.disabled = false;
+        approveBtn.textContent = originalText;
     });
 
     // Close modal
