@@ -1,0 +1,169 @@
+/* public/css/document-preview.css */
+/* Ensure checkbox is clickable */
+#agreeTerms {
+    z-index: 1000;
+    position: relative;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+    width: 20px;
+    height: 20px;
+}
+
+/* Make the label clickable too */
+label[for="agreeTerms"] {
+    cursor: pointer;
+    user-select: none;
+}
+/* Styling untuk modal preview dokumen */
+#documentPreviewModal .modal-dialog {
+    max-width: 90%;
+    width: 90%;
+    height: 80vh;
+    margin: 5vh auto;
+}
+
+#documentPreviewModal .modal-content {
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#documentPreviewModal .modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1.5rem;
+}
+
+#documentPreviewModal .modal-body {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Atur iframe untuk mencegah interaksi langsung dengan konten */
+#documentPreviewFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    position: relative;
+}
+
+/* Tambahkan watermark pada container */
+#documentPreviewContainer {
+    position: relative;
+}
+
+#documentPreviewContainer::before {
+    content: "PREVIEW ONLY - TIDAK UNTUK DIUNDUH";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 2rem;
+    color: rgba(200, 0, 0, 0.2);
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    font-weight: bold;
+    animation: watermark-pulse 4s infinite;
+}
+
+/* Styling untuk form request download */
+#downloadRequestForm {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+}
+
+#downloadRequestForm .card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: none;
+}
+
+#downloadRequestForm .card-header {
+    background-color: #0051a1;
+    color: white;
+    font-weight: 500;
+    padding: 1rem 1.5rem;
+}
+
+#downloadRequestForm .form-label {
+    font-weight: 500;
+}
+
+#downloadRequestForm .text-danger {
+    font-weight: bold;
+}
+
+/* Tampilan indikator loading */
+#documentLoadingIndicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.9);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+    color: #0051a1;
+    font-weight: 500;
+}
+
+#documentLoadingIndicator .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* Tampilan pesan error */
+#documentPreviewError {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 2rem !important;
+}
+
+/* Animasi untuk watermark */
+@keyframes watermark-pulse {
+    0% { opacity: 0.1; }
+    50% { opacity: 0.2; }
+    100% { opacity: 0.1; }
+}
+
+/* Request success modal */
+#requestSuccessModal .modal-header {
+    background-color: #28a745;
+}
+
+#requestSuccessModal .fa-check-circle {
+    color: #28a745;
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+#requestReferenceNumber {
+    font-weight: bold;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* Loading animation */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* Toast container */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1070;
+}
