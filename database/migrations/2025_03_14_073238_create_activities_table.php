@@ -11,7 +11,7 @@ class CreateActivitiesTable extends Migration
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained();
-            $table->string('type'); // 'approve', 'reject', 'request', etc.
+            $table->string('type');
             $table->foreignId('download_request_id')->nullable()->constrained('download_requests');
             $table->text('description')->nullable();
             $table->json('metadata')->nullable();

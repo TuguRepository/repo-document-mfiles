@@ -105,7 +105,7 @@
                 <p class="text-muted">Nomor Referensi: <span id="requestReferenceNumber">REF-12345</span></p>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-primary"  onclick="window.location.reload();" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>

@@ -5,7 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Activity extends Model
+class Activities extends Model
 {
     protected $fillable = [
         'user_id',

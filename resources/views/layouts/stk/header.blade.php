@@ -235,12 +235,13 @@
                 </ul>
 
                 <div class="header-profile">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name ?? 'User') }}&background=0051a1&color=fff" alt="User Profile">
+                    <img src="{{ $imageData ? 'data:image/png;base64,' . $imageData : 'https://ui-avatars.com/api/?name=User&background=0051a1&color=fff'}}"
+                        alt="User Profile">
                     <div>
-                        <p class="profile-name">{{ Auth::user()->name ?? 'Administrator' }}</p>
-                        <p class="profile-role">{{ Auth::user()->department ?? 'STK Manager' }}</p>
+                        <p class="profile-name">{{ $namaUser }}</p>
+                        <p class="profile-role">{{ $jobTitle ?? 'STK Manager' }}</p>
                     </div>
-                    <button id="logout-button" class="btn btn-outline-danger ms-3" onclick="logoutFromSystem()" title="Logout">
+                    <button id="logout-button" class="btn btn-outline-danger ms-3" onclick="logoutFromSystem()" title="Back To Main">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
@@ -266,21 +267,7 @@
         // Function to handle logout
         function logoutFromSystem() {
             if (confirm('Apakah Anda yakin ingin keluar?')) {
-                // Create form programmatically for POST request
-                var form = document.createElement('form');
-                form.method = 'POST';
-                form.action = "{{ route('logout') }}";
-                form.style.display = 'none';
-
-                // Add CSRF token
-                var csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                form.appendChild(csrfToken);
-
-                document.body.appendChild(form);
-                form.submit();
+                window.location.href = 'http://localhost:3000/dashboard'
             }
         }
 

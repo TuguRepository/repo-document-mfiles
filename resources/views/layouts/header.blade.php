@@ -202,10 +202,11 @@
                 </ul>
 
                 <div class="header-profile">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name ?? 'User') }}&background=0051a1&color=fff" alt="User Profile">
+                    <img src="{{ $imageData ? 'data:image/png;base64,' . $imageData : 'https://ui-avatars.com/api/?name=' . urlencode($namaUser) . '&background=0051a1&color=fff' }}"
+                        alt="User Profile">
                     <div>
-                        <p class="profile-name">{{ Auth::user()->name ?? 'Administrator' }}</p>
-                        <p class="profile-role">{{ Auth::user()->department ?? 'STK Manager' }}</p>
+                        <p class="profile-name">{{ $namaUser }}</p>
+                        <p class="profile-role">{{ $departemen ?? 'STK Manager' }}</p>
                     </div>
                     <button id="logout-button" class="btn btn-outline-danger ms-3" onclick="logoutFromSystem()" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\PDFWatermarkService;
 use Intervention\Image\ImageManager;
+use App\Facades\UserContext;
+use Illuminate\Support\Facades\Http;
 use TCPDF;
 use Image;
 
@@ -411,89 +412,91 @@ public function getFileContent(Request $request, $objectId, $version = 'latest')
         }
 
         // Apply watermarking for PDF files
-if ($contentType === 'application/pdf') {
-    // Get the username
-    $username = $request->session()->get('username', '');
+        if ($contentType === 'application/pdf') {
+            // Get the username
+            // $username = $request->session()->get('username', '');
+            $payload = UserContext::getPayload();
+            $username = $payload['name'];
 
-    // If username is empty, try to get from auth
-    if (empty($username) && auth()->check()) {
-        $username = auth()->user()->name ?? auth()->user()->username ?? '';
-    }
-    // Log username for debugging
-    Log::info('Using username for watermark', ['username' => $username]);
+            // // If username is empty, try to get from auth
+            // if (empty($username) && auth()->check()) {
+            //     $username = auth()->user()->name ?? auth()->user()->username ?? '';
+            // }
+            // Log username for debugging
+            Log::info('Using username for watermark', ['username' => $username]);
 
 
-           // Check if this is a download request
-    $isDownload = $request->input('download', false) ||
-    $request->route()->getName() === 'stk.documents.download';
+                // Check if this is a download request
+            $isDownload = $request->input('download', false) ||
+            $request->route()->getName() === 'stk.documents.download';
 
-            try {
-                // Get the original content
-                $originalContent = $contentResponse->body();
+                    try {
+                        // Get the original content
+                        $originalContent = $contentResponse->body();
 
-                // Verify content is truly a PDF
-                if (substr($originalContent, 0, 4) !== '%PDF') {
-                    Log::warning('Content may not be a valid PDF', [
-                        'content_start' => bin2hex(substr($originalContent, 0, 20))
-                    ]);
+                        // Verify content is truly a PDF
+                        if (substr($originalContent, 0, 4) !== '%PDF') {
+                            Log::warning('Content may not be a valid PDF', [
+                                'content_start' => bin2hex(substr($originalContent, 0, 20))
+                            ]);
+                        }
+
+                        // Apply watermark
+                        $watermarkService = new \App\Services\PDFWatermarkService();
+                        $fileContent = $watermarkService->processWithWatermark($originalContent, $isDownload, $username);
+
+                        // Verify we got valid content back
+                        if (empty($fileContent) || strlen($fileContent) < 100) {
+                            Log::error('Watermarking returned invalid content');
+                            $fileContent = $originalContent;
+                        }
+
+                        Log::info('Watermark applied', [
+                            'isDownload' => $isDownload,
+                            'contentLength' => strlen($fileContent)
+                        ]);
+
+                        // Set content disposition based on request type
+                        $contentDisposition = $isDownload ? 'attachment' : 'inline';
+
+                        // Return the watermarked PDF
+                        return response($fileContent, 200)
+                            ->header('Content-Type', $contentType)
+                            ->header('Content-Disposition', $contentDisposition . '; filename="' . $fileName . '"')
+                            ->header('Content-Length', strlen($fileContent))
+                            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+
+                    } catch (\Exception $e) {
+                        // Log watermarking error
+                        Log::error('PDF watermarking failed', ['error' => $e->getMessage()]);
+
+                        // Fallback to original PDF
+                        Log::info('Returning original PDF without watermark');
+                        return response($contentResponse->body(), 200)
+                            ->header('Content-Type', $contentType)
+                            ->header('Content-Disposition', 'inline; filename="' . $fileName . '"')
+                            ->header('Content-Length', $contentLength);
+                    }
                 }
 
-                // Apply watermark
-                $watermarkService = new \App\Services\PDFWatermarkService();
-                $fileContent = $watermarkService->processWithWatermark($originalContent, $isDownload, $username);
-
-                // Verify we got valid content back
-                if (empty($fileContent) || strlen($fileContent) < 100) {
-                    Log::error('Watermarking returned invalid content');
-                    $fileContent = $originalContent;
-                }
-
-                Log::info('Watermark applied', [
-                    'isDownload' => $isDownload,
-                    'contentLength' => strlen($fileContent)
-                ]);
-
-                // Set content disposition based on request type
-                $contentDisposition = $isDownload ? 'attachment' : 'inline';
-
-                // Return the watermarked PDF
-                return response($fileContent, 200)
-                    ->header('Content-Type', $contentType)
-                    ->header('Content-Disposition', $contentDisposition . '; filename="' . $fileName . '"')
-                    ->header('Content-Length', strlen($fileContent))
-                    ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-
-            } catch (\Exception $e) {
-                // Log watermarking error
-                Log::error('PDF watermarking failed', ['error' => $e->getMessage()]);
-
-                // Fallback to original PDF
-                Log::info('Returning original PDF without watermark');
+                // For non-PDF files, return as-is
                 return response($contentResponse->body(), 200)
                     ->header('Content-Type', $contentType)
                     ->header('Content-Disposition', 'inline; filename="' . $fileName . '"')
                     ->header('Content-Length', $contentLength);
+
+            } catch (\Exception $e) {
+                Log::error('M-Files file content retrieval error', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error sistem: ' . $e->getMessage()
+                ], 500);
             }
         }
-
-        // For non-PDF files, return as-is
-        return response($contentResponse->body(), 200)
-            ->header('Content-Type', $contentType)
-            ->header('Content-Disposition', 'inline; filename="' . $fileName . '"')
-            ->header('Content-Length', $contentLength);
-
-    } catch (\Exception $e) {
-        Log::error('M-Files file content retrieval error', [
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Error sistem: ' . $e->getMessage()
-        ], 500);
-    }
-}
 
     public function addWatermarkBase64(Request $request)
     {
@@ -1325,10 +1328,34 @@ public function getSTKSummary(Request $request)
 
     public function showCategoryPedoman()
     {
+
+        $payload = UserContext::getPayload();
+
+        if (!isset($payload['partner'])) {
+            $payload['partner'] = '9900000002';
+            $payload['name'] = 'Admin';
+        }
+
+        $bp = $payload['partner'];
+
+        $urlEndpoint = env('TKYC_URL', 'http://localhost:3004')."/api/image/{$bp}";
+
+        $response = Http::get($urlEndpoint);
+
+        if ($response->successful() && isset($response->json()['data']['image_data'])) {
+            $imageData = $response->json()['data']['image_data'];
+        } else {
+            $imageData = null;
+        }
+
+
         return view('stk.category', [
             'categoryTitle' => 'Pedoman',
             'categoryDescription' => 'Dokumen yang berisi peraturan dan pedoman Tugu Insurance sebagai panduan pelaksanaan kegiatan dan program kerja.',
-            'categoryCode' => 'A'
+            'categoryCode' => 'A',
+            'namaUser' => $payload['name'],
+            'jobTitle' => $payload['job_title'],
+            'imageData' => $imageData,
         ]);
     }
 

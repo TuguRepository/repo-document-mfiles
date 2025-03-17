@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller; // Tambahkan ini
 use Illuminate\Http\Request;
 use App\Models\DownloadRequest;
 use App\Models\Document;
-use App\Models\Activity;
+use App\Models\Activities;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Facades\UserContext;
+use Illuminate\Support\Facades\Http;
 
 class ApprovalController extends Controller
 {
@@ -20,8 +22,30 @@ class ApprovalController extends Controller
         // Dapatkan data untuk dokumen
         $documents = Document::all()->keyBy('id')->toArray();
 
+        $payload = UserContext::getPayload();
+
+        if (!isset($payload['partner'])) {
+            $payload['partner'] = '9900000002';
+            $payload['name'] = 'Admin';
+        }
+
+        $bp = $payload['partner'];
+
+        $urlEndpoint = env('TKYC_URL', 'http://localhost:3004')."/api/image/{$bp}";
+
+        $response = Http::get($urlEndpoint);
+
+        if ($response->successful() && isset($response->json()['data']['image_data'])) {
+            $imageData = $response->json()['data']['image_data'];
+        } else {
+            $imageData = null;
+        }
+
         return view('stk.approvals.index', [
-            'documents' => $documents
+            'documents' => $documents,
+            'namaUser' => $payload['name'],
+            'jobTitle' => $payload['job_title'],
+            'imageData' => $imageData,
         ]);
     }
 

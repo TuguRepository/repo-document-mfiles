@@ -404,7 +404,6 @@ function createRequestItem(request) {
     }
 
     const userName = request.user_name || request.username || 'Unknown User';
-    const userDepartment = request.department || request.user_department || 'N/A';
     const requestReason = request.reason || request.download_reason || 'Tidak ada alasan yang diberikan';
 
     const documentCategory =
@@ -421,7 +420,7 @@ function createRequestItem(request) {
             ${statusBadge}
         </div>
         <div class="request-meta">
-            <span><i class="fas fa-user me-1"></i> ${userName} (${userDepartment})</span>
+            <span><i class="fas fa-user me-1"></i> ${userName}</span>
             <span><i class="fas fa-calendar me-1"></i> ${formatDate(createdAt)}</span>
             <span><i class="fas fa-file-pdf me-1"></i> ${documentCategory}</span>
             ${request.status !== 'pending' ? actionInfo : ''}

@@ -425,6 +425,7 @@ function generateRandomToken(length) {
 
       // Inisialisasi terhadap cards yang sudah ada
       function initExistingCards() {
+        console.log("hehehe");
           // Target all document cards that might be already in the DOM
           const cards = document.querySelectorAll('.document-card, .card[data-id]');
           if (cards.length > 0) {

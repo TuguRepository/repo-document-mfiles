@@ -2016,6 +2016,7 @@ body {
                     .then(data => {
                         if (data.success && data.document) {
                             // Update modal title with document title
+                            document.getElementById('documentPreviewModalLabel').textContent = data.document.title || 'Preview Dokumen';
                             const modalTitleElement = previewModal.querySelector('.modal-title');
                             if (modalTitleElement) {
                                 modalTitleElement.textContent = data.document.title || 'Preview Dokumen';
@@ -2451,7 +2452,7 @@ body {
                    if (confirm('Apakah Anda yakin ingin keluar?')) {
                        localStorage.clear();
                        sessionStorage.clear();
-                       window.location.reload();
+                       window.location.href = env('APP_URL_SSO').'/dashboard';
                    }
                }
            </script>

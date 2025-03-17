@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Facades\UserContext;
 
 class DownloadRequestController extends Controller
 {
@@ -39,10 +40,12 @@ class DownloadRequestController extends Controller
             // Buat record download request baru
             $downloadRequest = new DownloadRequest();
 
+            $payload = UserContext::getPayload();
+
             // Wajib ada
             $downloadRequest->document_id = $request->document_id;
             $downloadRequest->user_id = Auth::id() ?? 1; // Default ke ID 1 jika tidak login
-            $downloadRequest->user_name = Auth::user() ? Auth::user()->name : 'Guest User';
+            $downloadRequest->user_name = $payload['name'] ? $payload['name'] : 'Guest User';
 
             // Opsional dengan default
             $downloadRequest->document_version = $request->document_version ?? 'latest';
