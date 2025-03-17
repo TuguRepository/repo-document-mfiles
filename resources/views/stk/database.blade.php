@@ -1898,17 +1898,36 @@ body {
                 let currentDocumentVersion = null;
 
                 // Event listener for request download button
+                // Event listener for request download button
                 if (requestDownloadBtn) {
-                    requestDownloadBtn.addEventListener('click', function() {
+                    console.log('Found download button, attaching event listener');
+                    requestDownloadBtn.addEventListener('click', function(e) {
+                        console.log('Download button clicked');
+                        e.preventDefault(); // Prevent any default behavior
+                        e.stopPropagation(); // Stop event from propagating
+
                         // Hide preview container
-                        previewContainer.classList.add('d-none');
+                        if (previewContainer) {
+                            console.log('Hiding preview container');
+                            previewContainer.classList.add('d-none');
+                        } else {
+                            console.error('Preview container not found');
+                        }
+
                         // Show download request form
-                        downloadRequestForm.classList.remove('d-none');
+                        if (downloadRequestForm) {
+                            console.log('Showing download request form');
+                            downloadRequestForm.classList.remove('d-none');
+                        } else {
+                            console.error('Download request form not found');
+                        }
 
                         // Set values for hidden fields
                         document.getElementById('requestDocId').value = currentDocumentId;
                         document.getElementById('requestDocVersion').value = currentDocumentVersion;
                     });
+                } else {
+                    console.error('Download button not found');
                 }
 
                 // Event listener for cancel button
@@ -1974,155 +1993,152 @@ body {
                     });
                 }
 
-                // Function to display document in modal
-                window.viewDocumentInModal = function(id, version = 'latest') {
-                    // Store current document info
-                    currentDocumentId = id;
-                    currentDocumentVersion = version;
+                // Fungsi untuk menampilkan preview dokumen dalam modal
+            window.viewDocumentInModal = function(id, version = 'latest') {
+                // Simpan ID dan versi saat ini
+                currentDocumentId = id;
+                currentDocumentVersion = version;
 
-                    console.log(`Opening document ID: ${id}, Version: ${version}`);
+                // Reset tampilan
+                loadingIndicator.classList.remove('d-none');
+                previewContainer.classList.add('d-none');
+                errorContainer.classList.add('d-none');
+                downloadRequestForm.classList.add('d-none');
 
-                    // Reset modal state
-                    if (loadingIndicator) loadingIndicator.classList.remove('d-none');
-                    if (previewContainer) previewContainer.classList.add('d-none');
-                    if (errorContainer) errorContainer.classList.add('d-none');
-                    if (downloadRequestForm) downloadRequestForm.classList.add('d-none');
+                // Update judul modal
+                document.getElementById('documentPreviewModalLabel').textContent = 'Memuat Dokumen...';
 
-                    // Update modal title
-                    if (previewModal) {
-                        const modalTitleElement = previewModal.querySelector('.modal-title');
-                        if (modalTitleElement) {
-                            modalTitleElement.textContent = 'Memuat Dokumen...';
-                        }
-                    }
+                // Tampilkan modal
+                const modal = new bootstrap.Modal(previewModal);
+                modal.show();
 
-                    // Show modal
-                    if (previewModal) {
-                        const modal = new bootstrap.Modal(previewModal);
-                        modal.show();
-                    }
+                // Siapkan URL untuk iframe
+                const previewUrl = `/stk/preview/${id}${version ? '/' + version : ''}`;
 
-                    // Document preview URL
-                    const previewUrl = `/stk/preview/${id}${version ? '/' + version : ''}`;
+                // Coba dapatkan informasi dokumen
+fetch(`/api/stk/document-info/${id}${version ? '/' + version : ''}`, {
+    headers: {
+        'Accept': 'application/json',
+        'X-Authentication': sessionStorage.getItem('mfiles_auth_token') || ''
+    }
+})
+.then(response => {
+    console.log('Document info response status:', response.status);
+    return response.json();
+})
+.then(data => {
+    console.log('Document info data:', data);
+    if (data.success && data.document) {
+        console.log('Updating title to:', data.document.title);
 
-                    // Fetch document info
-                    fetch(`/api/stk/document-info/${id}${version ? '/' + version : ''}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Authentication': sessionStorage.getItem('mfiles_auth_token') || ''
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.document) {
-                            // Update modal title with document title
-                            const modalTitleElement = previewModal.querySelector('.modal-title');
-                            if (modalTitleElement) {
-                                modalTitleElement.textContent = data.document.title || 'Preview Dokumen';
+        // Update judul di modal header
+        const modalTitleElement = document.getElementById('documentPreviewModalLabel');
+        if (modalTitleElement) {
+            modalTitleElement.textContent = data.document.title || 'Preview Dokumen';
+        } else {
+            console.warn('Modal title element not found');
+
+            // Fallback menggunakan querySelector jika ID tidak ditemukan
+            const titleByQuery = document.querySelector('#documentPreviewModal .modal-title');
+            if (titleByQuery) {
+                titleByQuery.textContent = data.document.title || 'Preview Dokumen';
+            }
+        }
+    } else {
+        console.warn('Invalid document data received:', data);
+    }
+})
+.catch(error => {
+    console.error('Error fetching document info:', error);
+    // Set default title jika fetch gagal
+    const modalTitleElement = document.getElementById('documentPreviewModalLabel');
+    if (modalTitleElement) {
+        modalTitleElement.textContent = 'Preview Dokumen';
+    }
+});
+
+// Tambahkan juga pembaruan judul di onload iframe
+previewFrame.onload = function() {
+    loadingIndicator.classList.add('d-none');
+    previewContainer.classList.remove('d-none');
+
+    // Pastikan judul sudah diupdate saat dokumen dimuat
+    const modalTitle = document.getElementById('documentPreviewModalLabel');
+    if (modalTitle && modalTitle.textContent === 'Memuat Dokumen...') {
+        modalTitle.textContent = 'Preview Dokumen';
+    }
+
+
+                    // Periksa apakah iframe memuat konten yang valid
+                    try {
+                        // Coba akses contentDocument (akan gagal jika ada error CORS)
+                        const frameContent = previewFrame.contentDocument || previewFrame.contentWindow.document;
+
+                        // Jika dokumen ada tetapi isinya error JSON
+                        const frameText = frameContent.body.textContent;
+                        if (frameText.includes('"success":false') || frameText.includes('error')) {
+                            try {
+                                const errorData = JSON.parse(frameText);
+                                showErrorMessage(errorData.message || 'Terjadi kesalahan saat memuat dokumen');
+                            } catch (e) {
+                                // Jika bukan JSON valid, tampilkan kontennya apa adanya
+                                if (frameText.trim().length > 0) {
+                                    // Ada konten teks, mungkin bisa dibaca
+                                } else {
+                                    showErrorMessage('Konten dokumen tidak dapat dimuat');
+                                }
                             }
                         }
-                    })
-                    .catch(error => console.error('Error fetching document info:', error));
 
-                    // Handle iframe load event
-                    if (previewFrame) {
-                        previewFrame.onload = function() {
-                            if (loadingIndicator) loadingIndicator.classList.add('d-none');
-                            if (previewContainer) previewContainer.classList.remove('d-none');
+                        // Tambahkan style untuk mencegah download/print
+                        try {
+                            const style = frameContent.createElement('style');
+                            style.textContent = `
+                                @media print { body { display: none; } }
+                                * { user-select: none !important; }
+                            `;
+                            frameContent.head.appendChild(style);
+                        } catch (e) {
+                            console.log('Could not inject anti-print styles');
+                        }
+                    } catch (e) {
+                        // Error CORS biasanya berarti dokumen PDF dimuat dengan benar
+                        console.log('Cross-origin frame access - expected for PDFs');
+                    }
+                };
 
-                            // Check if iframe loaded successfully
-                            try {
-                                   // Try to access iframe content (may fail due to CORS restrictions)
-                                   const frameContent = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                // Handler untuk error loading iframe
+                previewFrame.onerror = function() {
+                    showErrorMessage('Gagal memuat dokumen');
+                };
 
-                                   // Check for error responses
-                                   const frameText = frameContent.body.textContent;
-                                   if (frameText.includes('"success":false') || frameText.includes('error')) {
-                                       try {
-                                           const errorData = JSON.parse(frameText);
-                                           showErrorMessage(errorData.message || 'Terjadi kesalahan saat memuat dokumen');
-                                       } catch (e) {
-                                           // If not valid JSON, but has content
-                                           if (frameText.trim().length > 0) {
-                                               // There is text content that can be read
-                                           } else {
-                                               showErrorMessage('Konten dokumen tidak dapat dimuat');
-                                           }
-                                       }
-                                   }
+                // Set iframe src untuk memuat dokumen
+                previewFrame.src = previewUrl;
 
-                                   // Add style to prevent printing/downloading
-                                   try {
-                                       const style = frameContent.createElement('style');
-                                       style.textContent = `
-                                           @media print { body { display: none; } }
-                                           * { user-select: none !important; }
-                                       `;
-                                       frameContent.head.appendChild(style);
-                                   } catch (e) {
-                                       console.log('Could not inject anti-print styles');
-                                   }
-                               } catch (e) {
-                                   // CORS error usually means PDF loaded correctly
-                                   console.log('Cross-origin frame access - expected for PDFs');
-                               }
-                           };
+                // Fungsi untuk menampilkan pesan error
+                function showErrorMessage(message) {
+                    loadingIndicator.classList.add('d-none');
+                    previewContainer.classList.add('d-none');
+                    errorContainer.classList.remove('d-none');
+                    document.getElementById('errorMessage').textContent = message;
 
-                           // Handle iframe error
-                           previewFrame.onerror = function() {
-                               showErrorMessage('Gagal memuat dokumen');
-                           };
+                    // Set tombol retry
+                    document.getElementById('retryLoadButton').onclick = function(e) {
+                        e.preventDefault();
+                        previewFrame.src = previewUrl;
+                        loadingIndicator.classList.remove('d-none');
+                        errorContainer.classList.add('d-none');
+                    };
+                }
+            };
 
-                           // Set iframe source
-                           previewFrame.src = previewUrl;
-                       }
-
-                       // Function to show error message
-                       function showErrorMessage(message) {
-                           if (loadingIndicator) loadingIndicator.classList.add('d-none');
-                           if (previewContainer) previewContainer.classList.add('d-none');
-                           if (errorContainer) {
-                               errorContainer.classList.remove('d-none');
-                               const errorMessageElement = errorContainer.querySelector('#errorMessage');
-                               if (errorMessageElement) {
-                                   errorMessageElement.textContent = message;
-                               }
-
-                               // Setup retry button
-                               const retryButton = errorContainer.querySelector('#retryLoadButton');
-                               if (retryButton) {
-                                   retryButton.onclick = function(e) {
-                                       e.preventDefault();
-                                       if (previewFrame) previewFrame.src = previewUrl;
-                                       if (loadingIndicator) loadingIndicator.classList.remove('d-none');
-                                       if (errorContainer) errorContainer.classList.add('d-none');
-                                   };
-                               }
-                           }
-                       }
-                   };
-
-                   // Override standard previewDocument function
-                   window.previewDocument = function(id, version) {
-                       viewDocumentInModal(id, version);
-                       return false; // Prevent default navigation
-                   };
-
-                   // Process all document cards to open in modal
-                   handleDocumentCards();
-
-                   // Add mutation observer for dynamically added cards
-                   const observer = new MutationObserver(function(mutations) {
-                       mutations.forEach(function(mutation) {
-                           if (mutation.addedNodes.length) {
-                               setTimeout(handleDocumentCards, 100);
-                           }
-                       });
-                   });
-
-                   observer.observe(document.body, { childList: true, subtree: true });
-               }
-
+            // Override fungsi previewDocument standard
+            window.previewDocument = function(id, version) {
+                // Gunakan modal untuk preview
+                viewDocumentInModal(id, version);
+                return false; // Prevent default navigation
+            };
+        }
                // Function to process document cards
                function handleDocumentCards() {
                    // Target all document-cards and cards
