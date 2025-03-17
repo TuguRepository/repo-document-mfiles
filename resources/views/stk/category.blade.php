@@ -735,6 +735,56 @@ label[for="agreeTerms"] {
             color: #0051a1;
             font-weight: 500;
         }
+
+        /* Styling untuk checkbox agreement */
+        .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        }
+
+        .form-check-input {
+        width: 1.25em;
+        height: 1.25em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        }
+
+        .form-check-input:hover {
+        border-color: #0d6efd;
+        }
+
+        .form-check-label {
+        transition: all 0.3s ease;
+        padding-left: 0.25rem;
+        }
+
+        /* Animasi untuk checkbox ketika dicentang */
+        @keyframes checkmark {
+        0% {
+            transform: scale(0);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+        }
+
+        .form-check-input:checked {
+        animation: checkmark 0.3s ease-in-out;
+        }
+
+        /* Styling untuk teks ketika disetujui */
+        .text-success.fw-bold {
+        animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+        }
     </style>
     @include('layouts.stk.header')
     @include('stk.approvals.partials.document-preview-modal')
@@ -1145,6 +1195,33 @@ label[for="agreeTerms"] {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     @include('layouts.footer')
     <script>
+        let idDocument = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const newCheckbox = document.getElementById('newAgreeTerms');
+        const agreeLabel = document.querySelector('label[for="newAgreeTerms"]');
+
+        if (newCheckbox && agreeLabel) {
+            // Add styling to make the checkbox more visible when checked
+            newCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Jika dicentang, tambahkan kelas untuk styling
+                    agreeLabel.classList.add('text-success', 'fw-bold');
+                    // Tambahkan teks konfirmasi dengan ikon centang
+                    agreeLabel.innerHTML = 'Saya menyetujui <span class="text-success">✓</span> bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.';
+                } else {
+                    // Jika tidak dicentang, hapus kelas styling
+                    agreeLabel.classList.remove('text-success', 'fw-bold');
+                    // Kembalikan teks asli
+                    agreeLabel.textContent = 'Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.';
+                }
+            });
+
+            // Tambahkan gaya visual untuk label
+            agreeLabel.style.cursor = 'pointer';
+        }
+    });
+
         document.addEventListener('DOMContentLoaded', function() {
             // Global variables
             const categoryCode = '{{ $categoryCode }}';
@@ -1244,10 +1321,6 @@ label[for="agreeTerms"] {
                             <p class="document-desc">${doc.jenis_stk || 'Jenis tidak tersedia'}</p>
                             <div class="document-meta">
                                 <div class="document-date">Diperbarui: ${formattedDate}</div>
-                                <div class="document-actions">
-                                    <button class="view-btn" data-id="${doc.id}" data-version="${doc.version}" title="Preview"><i class="fas fa-eye"></i></button>
-                                    <button class="download-btn" data-id="${doc.id}" data-version="${doc.version}" title="Download"><i class="fas fa-download"></i></button>
-                                </div>
                             </div>
                         </div>
                     `;
@@ -1827,10 +1900,10 @@ label[for="agreeTerms"] {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    const id = this.getAttribute('data-id');
+                    idDocument = this.getAttribute('data-id');
                     const version = this.getAttribute('data-version') || 'latest';
-                    if (id) {
-                        viewDocumentInModal(id, version);
+                    if (idDocument) {
+                        viewDocumentInModal(idDocument, version);
                     }
                 });
             });
@@ -2060,261 +2133,421 @@ label[for="agreeTerms"] {
         //     });
         // });
 
-        // Function untuk menampilkan toast notification
-function showToast(title, message, type = 'info') {
-    // Cek apakah sudah ada container untuk toast
-    let toastContainer = document.getElementById('toast-container');
+//         // Function untuk menampilkan toast notification
+// function showToast(title, message, type = 'info') {
+//     // Cek apakah sudah ada container untuk toast
+//     let toastContainer = document.getElementById('toast-container');
 
-    if (!toastContainer) {
-        // Buat container baru jika belum ada
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toast-container';
-        toastContainer.className = 'position-fixed top-0 end-0 p-3';
-        toastContainer.style.zIndex = '1080';
-        document.body.appendChild(toastContainer);
-    }
+//     if (!toastContainer) {
+//         // Buat container baru jika belum ada
+//         toastContainer = document.createElement('div');
+//         toastContainer.id = 'toast-container';
+//         toastContainer.className = 'position-fixed top-0 end-0 p-3';
+//         toastContainer.style.zIndex = '1080';
+//         document.body.appendChild(toastContainer);
+//     }
 
-    // Buat ID unik untuk toast
-    const toastId = 'toast-' + Date.now();
+//     // Buat ID unik untuk toast
+//     const toastId = 'toast-' + Date.now();
 
-    // Tentukan class background berdasarkan type
-    let bgClass = 'bg-info text-white';
-    let iconClass = 'info-circle';
+//     // Tentukan class background berdasarkan type
+//     let bgClass = 'bg-info text-white';
+//     let iconClass = 'info-circle';
 
-    if (type === 'success') {
-        bgClass = 'bg-success text-white';
-        iconClass = 'check-circle';
-    } else if (type === 'error' || type === 'danger') {
-        bgClass = 'bg-danger text-white';
-        iconClass = 'exclamation-circle';
-    } else if (type === 'warning') {
-        bgClass = 'bg-warning text-dark';
-        iconClass = 'exclamation-triangle';
-    }
+//     if (type === 'success') {
+//         bgClass = 'bg-success text-white';
+//         iconClass = 'check-circle';
+//     } else if (type === 'error' || type === 'danger') {
+//         bgClass = 'bg-danger text-white';
+//         iconClass = 'exclamation-circle';
+//     } else if (type === 'warning') {
+//         bgClass = 'bg-warning text-dark';
+//         iconClass = 'exclamation-triangle';
+//     }
 
-    // Buat HTML untuk toast
-    const toast = `
-        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-            <div class="toast-header ${bgClass}">
-                <i class="fas fa-${iconClass} me-2"></i>
-                <strong class="me-auto">${title}</strong>
-                <small>Baru saja</small>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
-            </div>
-        </div>
-    `;
+//     // Buat HTML untuk toast
+//     const toast = `
+//         <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+//             <div class="toast-header ${bgClass}">
+//                 <i class="fas fa-${iconClass} me-2"></i>
+//                 <strong class="me-auto">${title}</strong>
+//                 <small>Baru saja</small>
+//                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+//             </div>
+//             <div class="toast-body">
+//                 ${message}
+//             </div>
+//         </div>
+//     `;
 
-    // Tambahkan toast ke container
-    toastContainer.insertAdjacentHTML('beforeend', toast);
+//     // Tambahkan toast ke container
+//     toastContainer.insertAdjacentHTML('beforeend', toast);
 
-    // Inisialisasi toast dan tampilkan
-    const toastElement = document.getElementById(toastId);
-    const bsToast = new bootstrap.Toast(toastElement);
-    bsToast.show();
+//     // Inisialisasi toast dan tampilkan
+//     const toastElement = document.getElementById(toastId);
+//     const bsToast = new bootstrap.Toast(toastElement);
+//     bsToast.show();
 
-    // Hapus toast dari DOM setelah ditutup
-    toastElement.addEventListener('hidden.bs.toast', function() {
-        toastElement.remove();
-    });
-}
+//     // Hapus toast dari DOM setelah ditutup
+//     toastElement.addEventListener('hidden.bs.toast', function() {
+//         toastElement.remove();
+//     });
+// }
 
-// Perbaikan fungsi updateNotificationBadge
-function updateNotificationBadge() {
-    // Perbaikan route API sesuai dengan struktur aplikasi
-    fetch('/api/stk/pending-count')
-        .then(response => {
-            if (!response.ok) {
-                // Jika response tidak OK, berhenti dan tidak crash
-                console.warn('Notification API tidak tersedia:', response.status);
-                return null;
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.success) {
-                const badge = document.querySelector('.notification-badge');
-                if (badge) {
-                    badge.setAttribute('data-count', data.count.toString());
-                }
+// // Improved updateNotificationBadge function
+// function updateNotificationBadge() {
+//     // Perbaikan route API sesuai dengan struktur aplikasi
+//     fetch('/api/stk/pending-count')
+//         .then(response => {
+//             if (!response.ok) {
+//                 // If response not OK, log and stop
+//                 console.warn('Notification API tidak tersedia:', response.status);
+//                 return Promise.reject('API returned error status');
+//             }
+//             return response.json();
+//         })
+//         .then(data => {
+//             if (data && data.success) {
+//                 const badge = document.querySelector('.notification-badge');
+//                 if (badge) {
+//                     badge.setAttribute('data-count', data.count.toString());
+//                 }
 
-                const pendingTab = document.querySelector('#pending-tab .badge');
-                if (pendingTab) {
-                    pendingTab.textContent = data.count.toString();
-                }
-            }
-        })
-        .catch(error => {
-            // Error handling yang lebih elegan, tidak crash
-            console.warn('Error updating notification badge:', error);
-        });
-}
+//                 const pendingTab = document.querySelector('#pending-tab .badge');
+//                 if (pendingTab) {
+//                     pendingTab.textContent = data.count.toString();
+//                 }
+//             }
+//         })
+//         .catch(error => {
+//             // More elegant error handling without crashing
+//             console.warn('Error updating notification badge:', error);
+//         });
+// }
 
-// Script utama
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - completely replacing form');
+// // Script utama
+// document.addEventListener('DOMContentLoaded', function() {
+//     console.log('DOM loaded - completely replacing form');
 
-    // Get the form container
-    const downloadRequestForm = document.getElementById('downloadRequestForm');
+//     // Get the form container
+//     const downloadRequestForm = document.getElementById('downloadRequestForm');
 
-    if (downloadRequestForm) {
-        console.log('Form container found, replacing content');
-        // Replace the entire form with new HTML
-        downloadRequestForm.innerHTML = `
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Request Download Dokumen</h5>
-                </div>
-                <div class="card-body">
-                    <form id="formRequestDownload">
-                        <input type="hidden" id="requestDocId" name="document_id">
-                        <input type="hidden" id="requestDocVersion" name="document_version">
+//     if (downloadRequestForm) {
+//         console.log('Form container found, replacing content');
+//         // Replace the entire form with new HTML
+//         downloadRequestForm.innerHTML = `
+//             <div class="card">
+//                 <div class="card-header bg-primary text-white">
+//                     <h5 class="mb-0">Request Download Dokumen</h5>
+//                 </div>
+//                 <div class="card-body">
+//                     <form method="POST" id="formRequestDownload" action="{{ route('download-requests.store')}}">
+//                         @csrf
+//                         <input type="hidden" id="requestDocId" name="document_id">
+//                         <input type="hidden" id="requestDocVersion" name="document_version">
 
-                        <div class="mb-3">
-                            <label for="requestReason" class="form-label">Alasan Permintaan <span class="text-danger">*</span></label>
-                            <select class="form-select" id="requestReason" name="reason" required>
-                                <option value="">-- Pilih Alasan --</option>
-                                <option value="reference">Referensi Pekerjaan</option>
-                                <option value="audit">Audit/Compliance</option>
-                                <option value="sharing">Sharing Knowledge</option>
-                                <option value="other">Lainnya</option>
-                            </select>
-                        </div>
+//                         <div class="mb-3">
+//                             <label for="requestReason" class="form-label">Alasan Permintaan <span class="text-danger">*</span></label>
+//                             <select class="form-select" id="requestReason" name="reason" required>
+//                                 <option value="">-- Pilih Alasan --</option>
+//                                 <option value="reference">Referensi Pekerjaan</option>
+//                                 <option value="audit">Audit/Compliance</option>
+//                                 <option value="sharing">Sharing Knowledge</option>
+//                                 <option value="other">Lainnya</option>
+//                             </select>
+//                         </div>
 
-                        <div class="mb-3" id="otherReasonContainer" style="display: none;">
-                            <label for="otherReason" class="form-label">Alasan Lainnya <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="otherReason" name="other_reason" rows="2"></textarea>
-                        </div>
+//                         <div class="mb-3" id="otherReasonContainer" style="display: none;">
+//                             <label for="otherReason" class="form-label">Alasan Lainnya <span class="text-danger">*</span></label>
+//                             <textarea class="form-control" id="otherReason" name="other_reason" rows="2"></textarea>
+//                         </div>
 
-                        <div class="mb-3">
-                            <label for="requestNotes" class="form-label">Catatan Tambahan</label>
-                            <textarea class="form-control" id="requestNotes" name="notes" rows="2"></textarea>
-                        </div>
+//                         <div class="mb-3">
+//                             <label for="requestNotes" class="form-label">Catatan Tambahan</label>
+//                             <textarea class="form-control" id="requestNotes" name="notes" rows="2"></textarea>
+//                         </div>
 
-                        <div class="form-check mb-3">
+//                         <div class="form-check mb-3">
+//                             <input class="form-check-input" type="checkbox" id="newAgreeTerms" name="agree_terms" required>
+//                             <label class="form-check-label" for="newAgreeTerms">
+//                                 Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.
+//                             </label>
+//                         </div>
 
-                            <label class="form-check-label" for="newAgreeTerms">
-                                Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.
-                            </label>
-                        </div>
+//                         <div class="d-flex justify-content-between">
+//                             <button type="button" class="btn btn-secondary" id="newCancelRequestBtn">
+//                                 <i class="fas fa-times"></i> Batal
+//                             </button>
+//                             <button type="submit" class="btn btn-primary" id="newSubmitRequestBtn">
+//                                 <i class="fas fa-paper-plane"></i> Kirim Permintaan
+//                             </button>
+//                         </div>
+//                     </form>
+//                 </div>
+//             </div>
+//         `;
 
-                        <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" id="newCancelRequestBtn">
-                                <i class="fas fa-times"></i> Batal
-                            </button>
-                            <button type="button" class="btn btn-primary" id="newSubmitRequestBtn">
-                                <i class="fas fa-paper-plane"></i> Kirim Permintaan
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
+//         // Set up event handlers for the new elements
+//         const newReasonSelect = document.getElementById('requestReason');
+//         const newOtherReasonContainer = document.getElementById('otherReasonContainer');
+//         const newCancelButton = document.getElementById('newCancelRequestBtn');
+//         const newSubmitButton = document.getElementById('newSubmitRequestBtn');
+//         const formRequestDownload = document.getElementById('formRequestDownload');
+//         // Get the checkbox element
+//         const newCheckbox = document.getElementById('newAgreeTerms');
+//         const agreeLabel = document.querySelector('label[for="newAgreeTerms"]');
 
-        // Set up event handlers for the new elements
-        const newReasonSelect = document.getElementById('requestReason');
-        const newOtherReasonContainer = document.getElementById('otherReasonContainer');
-        const newCancelButton = document.getElementById('newCancelRequestBtn');
-        const newSubmitButton = document.getElementById('newSubmitRequestBtn');
-        const newCheckbox = document.getElementById('newAgreeTerms');
-        const formRequestDownload = document.getElementById('formRequestDownload');
+//         // Add click event listener to both the checkbox and the label
+//         if (newCheckbox) {
+//             // Add styling to make the checkbox more visible when checked
+//             newCheckbox.addEventListener('change', function() {
+//                 if (this.checked) {
+//                     // Jika dicentang, tambahkan kelas untuk styling
+//                     agreeLabel.classList.add('text-success', 'fw-bold');
+//                     // Tambahkan teks konfirmasi
+//                     agreeLabel.innerHTML = 'Saya menyetujui <span class="text-success">✓</span> bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.';
+//                 } else {
+//                     // Jika tidak dicentang, hapus kelas styling
+//                     agreeLabel.classList.remove('text-success', 'fw-bold');
+//                     // Kembalikan teks asli
+//                     agreeLabel.textContent = 'Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.';
+//                 }
+//             });
 
-        // Toggle other reason field visibility
-        if (newReasonSelect) {
-            newReasonSelect.addEventListener('change', function() {
-                if (this.value === 'other') {
-                    newOtherReasonContainer.style.display = 'block';
-                } else {
-                    newOtherReasonContainer.style.display = 'none';
-                }
-            });
-        }
+//             // Juga tambahkan kemampuan untuk mengklik label untuk mencentang checkbox
+//             agreeLabel.addEventListener('click', function(e) {
+//                 // Prevent default to avoid double-toggling since label is already linked to checkbox
+//                 e.preventDefault();
 
-        // Cancel button handler
-        if (newCancelButton) {
-            newCancelButton.addEventListener('click', function() {
-                downloadRequestForm.classList.add('d-none');
-                document.getElementById('documentPreviewContainer').classList.remove('d-none');
-            });
-        }
+//                 // Toggle checkbox state
+//                 newCheckbox.checked = !newCheckbox.checked;
 
-        // Submit button handler
-        if (newSubmitButton) {
-            newSubmitButton.addEventListener('click', function() {
-                console.log('Submit button clicked');
+//                 // Trigger the change event manually
+//                 const event = new Event('change');
+//                 newCheckbox.dispatchEvent(event);
+//             });
+//         }
 
-                // Check if checkbox is checked
-                if (newCheckbox && !newCheckbox.checked) {
-                    alert('Anda harus menyetujui syarat dan ketentuan terlebih dahulu!');
-                    return;
-                }
+//         // Tambahkan gaya visual untuk checkbox saat hover
+//         if (agreeLabel) {
+//             agreeLabel.style.cursor = 'pointer';
+//             agreeLabel.addEventListener('mouseover', function() {
+//                 this.classList.add('text-primary');
+//             });
 
-                // Generate reference number
-                const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
-                document.getElementById('requestReferenceNumber').textContent = refNumber;
+//             agreeLabel.addEventListener('mouseout', function() {
+//                 if (!newCheckbox.checked) {
+//                     this.classList.remove('text-primary');
+//                 }
+//             });
+//         }
 
-                // Show success modal and hide preview modal
-                const previewModal = bootstrap.Modal.getInstance(document.getElementById('documentPreviewModal'));
-                if (previewModal) {
-                    previewModal.hide();
-                }
+//        // Form submission handler
+// if (formRequestDownload) {
+//     formRequestDownload.addEventListener('submit', function(e) {
+//         e.preventDefault(); // Prevent default form submission
+//         console.log('Form submitted');
 
-                const successModal = new bootstrap.Modal(document.getElementById('requestSuccessModal'));
-                successModal.show();
+//         // Check if checkbox is checked
+//         const agreeTerms = document.getElementById('newAgreeTerms');
+//         if (agreeTerms && !agreeTerms.checked) {
+//             alert('Anda harus menyetujui syarat dan ketentuan terlebih dahulu!');
+//             return;
+//         }
 
-                // Tampilkan notifikasi toast bahwa permintaan telah berhasil dikirim
-                showToast(
-                    'Permintaan Terkirim',
-                    'Permintaan download dokumen Anda telah berhasil dikirim dan sedang menunggu persetujuan.',
-                    'success'
-                );
+//         // Show loading state
+//         const submitButton = document.getElementById('newSubmitRequestBtn');
+//         if (submitButton) {
+//             submitButton.disabled = true;
+//             submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mengirim...';
+//         }
 
-                // Reset form and restore preview container
-                formRequestDownload.reset();
-                downloadRequestForm.classList.add('d-none');
-                document.getElementById('documentPreviewContainer').classList.remove('d-none');
-            });
-        }
-    } else {
-        console.error('Form container not found');
-    }
+//         // Get form data
+//         const formData = new FormData(this);
 
-    // Inisialisasi notifikasi dengan penanganan error yang lebih baik
-    try {
-        // Inisialisasi sistem notifikasi
-        if (typeof Echo !== 'undefined') {
-            Echo.private('stk.approvals')
-                .listen('NewDownloadRequest', (e) => {
-                    // Handle new download request notifications
-                    showToast(
-                        'Permintaan Download Baru',
-                        `<strong>${e.user.name}</strong> dari <strong>${e.user.department}</strong> mengajukan permintaan download dokumen <strong>${e.document.title}</strong>.`,
-                        'info'
-                    );
+//         // Set document ID from global variable
+//         formData.set('document_id', idDocument);
 
-                    // Update badge count
-                    updateNotificationBadge();
+//         // Get CSRF token
+//         const csrfToken = document.querySelector('meta[name="csrf-token"]');
 
-                    // Add to list if on first page
-                    if (window.location.search === '' || window.location.search.includes('page=1')) {
-                        addNewRequestToList(e);
-                    }
-                });
-        }
+//         // Debug information
+//         console.log('Sending form data:', Object.fromEntries(formData));
+//         console.log('Document ID:', idDocument);
 
-        // Coba update notification badge
-        try {
-            updateNotificationBadge();
-        } catch (error) {
-            console.warn('Tidak dapat memperbarui badge notifikasi:', error);
-        }
-    } catch (error) {
-        console.warn('Error saat menginisialisasi notifikasi:', error);
-    }
-});
+//         // Submit form data using fetch API
+//         fetch('/api/stk/download-requests', {
+//             method: 'POST',
+//             headers: {
+//                 'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : '',
+//                 'Accept': 'application/json',
+//                 'X-Requested-With': 'XMLHttpRequest'
+//             },
+//             body: formData
+//         })
+//         .then(response => {
+//             // Always reset button state
+//             if (submitButton) {
+//                 submitButton.disabled = false;
+//                 submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Permintaan';
+//             }
+
+//             // Check if response is OK
+//             if (!response.ok) {
+//                 return response.text().then(text => {
+//                     console.error('Server response:', text);
+//                     throw new Error('Network response was not ok');
+//                 });
+//             }
+
+//             return response.json();
+//         })
+//         .then(data => {
+//             console.log('Success:', data);
+
+//             // Generate reference number for display
+//             const refNumber = data.request_id ? 'REF-' + data.request_id : 'REF-' + Math.floor(Math.random() * 900000 + 100000);
+//             if (document.getElementById('requestReferenceNumber')) {
+//                 document.getElementById('requestReferenceNumber').textContent = refNumber;
+//             }
+
+//             // Hide preview modal
+//             const previewModal = bootstrap.Modal.getInstance(document.getElementById('documentPreviewModal'));
+//             if (previewModal) {
+//                 previewModal.hide();
+//             }
+
+//             // Show success modal
+//             const successModal = new bootstrap.Modal(document.getElementById('requestSuccessModal'));
+//             successModal.show();
+
+//             // Show toast notification
+//             showToast(
+//                 'Permintaan Terkirim',
+//                 'Permintaan download dokumen Anda telah berhasil dikirim dan sedang menunggu persetujuan.',
+//                 'success'
+//             );
+
+//             // Reset form and restore preview container
+//             formRequestDownload.reset();
+//             document.getElementById('downloadRequestForm').classList.add('d-none');
+//             document.getElementById('documentPreviewContainer').classList.remove('d-none');
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+
+//             // Show error toast
+//             showToast(
+//                 'Terjadi Kesalahan',
+//                 'Gagal mengirim permintaan. Silakan coba lagi nanti.',
+//                 'error'
+//             );
+//         });
+//     });
+// }
+// console.log('Form data before submit:', Object.fromEntries(formData));
+// console.log('Current document ID:', idDocument);
+//         // Toggle other reason field visibility
+//         if (newReasonSelect) {
+//             newReasonSelect.addEventListener('change', function() {
+//                 if (this.value === 'other') {
+//                     newOtherReasonContainer.style.display = 'block';
+//                 } else {
+//                     newOtherReasonContainer.style.display = 'none';
+//                 }
+//             });
+//         }
+
+//         // Cancel button handler
+//         if (newCancelButton) {
+//             newCancelButton.addEventListener('click', function() {
+//                 downloadRequestForm.classList.add('d-none');
+//                 document.getElementById('documentPreviewContainer').classList.remove('d-none');
+//             });
+//         }
+
+//         // Submit button handler
+//         if (newSubmitButton) {
+//             newSubmitButton.addEventListener('click', function() {
+//                 console.log('Submit button clicked');
+
+//                 // Check if checkbox is checked
+//                 if (newCheckbox && !newCheckbox.checked) {
+//                     alert('Anda harus menyetujui syarat dan ketentuan terlebih dahulu!');
+//                     return;
+//                 }
+
+//                 // Generate reference number
+//                 const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
+//                 document.getElementById('requestReferenceNumber').textContent = refNumber;
+
+//                 // Show success modal and hide preview modal
+//                 const previewModal = bootstrap.Modal.getInstance(document.getElementById('documentPreviewModal'));
+//                 if (previewModal) {
+//                     previewModal.hide();
+//                 }
+// // When showing success modal
+// const successModal = new bootstrap.Modal(document.getElementById('requestSuccessModal'));
+// successModal.show();
+
+// // After showing modal, move focus to an element inside it
+// setTimeout(() => {
+//     const okButton = document.querySelector('#requestSuccessModal .btn-primary');
+//     if (okButton) okButton.focus();
+// }, 500);
+
+//                 // Tampilkan notifikasi toast bahwa permintaan telah berhasil dikirim
+//                 showToast(
+//                     'Permintaan Terkirim',
+//                     'Permintaan download dokumen Anda telah berhasil dikirim dan sedang menunggu persetujuan.',
+//                     'success'
+//                 );
+
+//                 // Reset form and restore preview container
+//                 formRequestDownload.reset();
+//                 downloadRequestForm.classList.add('d-none');
+//                 document.getElementById('documentPreviewContainer').classList.remove('d-none');
+//             });
+//         }
+//     } else {
+//         console.error('Form container not found');
+//     }
+
+//     // Inisialisasi notifikasi dengan penanganan error yang lebih baik
+//     try {
+//         // Inisialisasi sistem notifikasi
+//         if (typeof Echo !== 'undefined') {
+//             Echo.private('stk.approvals')
+//                 .listen('NewDownloadRequest', (e) => {
+//                     // Handle new download request notifications
+//                     showToast(
+//                         'Permintaan Download Baru',
+//                         `<strong>${e.user.name}</strong> dari <strong>${e.user.department}</strong> mengajukan permintaan download dokumen <strong>${e.document.title}</strong>.`,
+//                         'info'
+//                     );
+
+//                     // Update badge count
+//                     updateNotificationBadge();
+
+//                     // Add to list if on first page
+//                     if (window.location.search === '' || window.location.search.includes('page=1')) {
+//                         addNewRequestToList(e);
+//                     }
+//                 });
+//         }
+
+//         // Coba update notification badge
+//         try {
+//             updateNotificationBadge();
+//         } catch (error) {
+//             console.warn('Tidak dapat memperbarui badge notifikasi:', error);
+//         }
+//     } catch (error) {
+//         console.warn('Error saat menginisialisasi notifikasi:', error);
+//     }
+// });
 
 </script>
+<script src="{{ asset('js/approval-requests.js') }}"></script>
 </body>
 </html>

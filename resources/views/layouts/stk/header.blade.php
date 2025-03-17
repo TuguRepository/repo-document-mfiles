@@ -175,9 +175,18 @@
             color: white;
         }
 
+        /* Toast notification container */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1060;
+        }
+
         /* Other commonly used styles */
         @yield('additional-styles')
     </style>
+    @yield('styles')
 </head>
 <body>
     <!-- Navbar -->
@@ -215,10 +224,10 @@
                         <a class="nav-link {{ request()->is('stk') ? 'active' : '' }}" href="{{ url('/stk') }}">Statistik</a>
                     </li>
 
-                    <!-- Dihapus role check, langsung tampilkan menu Approval untuk semua pengguna -->
+                    <!-- Menu Approval untuk semua pengguna -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('stk/approvals*') ? 'active' : '' }}" href="{{ url('/stk/approvals') }}">
-                            <div class="notification-badge" data-count="{{ $pendingCount ?? 0 }}">
+                            <div class="notification-badge" id="notificationBadge" data-count="{{ $pendingCount ?? 0 }}">
                                 <i class="fas fa-clipboard-check"></i> Approval
                             </div>
                         </a>
@@ -244,6 +253,12 @@
         @yield('header')
     @endif
 
+    <!-- Toast Container for Notifications -->
+    <div class="toast-container"></div>
+
+    <!-- Content Section -->
+    @yield('content')
+
     <!-- Make sure Bootstrap JS is loaded at the end of body -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
@@ -251,18 +266,149 @@
         // Function to handle logout
         function logoutFromSystem() {
             if (confirm('Apakah Anda yakin ingin keluar?')) {
-                // You can use a form submission or fetch API here
-                // For now, just redirect to logout route
-                window.location.href = "{{ route('logout') }}";
+                // Create form programmatically for POST request
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{{ route('logout') }}";
+                form.style.display = 'none';
+
+                // Add CSRF token
+                var csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                form.appendChild(csrfToken);
+
+                document.body.appendChild(form);
+                form.submit();
             }
         }
 
-        // Make sure dropdowns work properly
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize all dropdowns
-            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-            dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl);
+        // Function to show toast notifications
+        function showToast(title, message, type = 'info') {
+            // Create toast container if doesn't exist
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create unique ID
+            const toastId = 'toast-' + Date.now();
+
+            // Set classes based on type
+            let bgClass, iconClass;
+            switch (type) {
+                case 'success':
+                    bgClass = 'bg-success';
+                    iconClass = 'fas fa-check-circle';
+                    break;
+                case 'error':
+                    bgClass = 'bg-danger';
+                    iconClass = 'fas fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    bgClass = 'bg-warning text-dark';
+                    iconClass = 'fas fa-exclamation-triangle';
+                    break;
+                default:
+                    bgClass = 'bg-info';
+                    iconClass = 'fas fa-info-circle';
+            }
+
+            // Create toast HTML
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = 'toast';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+
+            toast.innerHTML = `
+                <div class="toast-header ${bgClass} text-white">
+                    <i class="${iconClass} me-2"></i>
+                    <strong class="me-auto">${title}</strong>
+                    <small>Baru saja</small>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+
+            // Add to container
+            toastContainer.appendChild(toast);
+
+            // Show toast
+            const bsToast = new bootstrap.Toast(toast, {
+                autohide: true,
+                delay: 5000
             });
+            bsToast.show();
+
+            // Remove when hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        // Update notification badge count
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                badge.setAttribute('data-count', count);
+            }
+        }
+
+        // Perbaikan untuk dropdown yang tidak berfungsi
+document.addEventListener('DOMContentLoaded', function() {
+    // Pastikan Bootstrap JS dimuat
+    if (typeof bootstrap !== 'undefined') {
+        // Inisialisasi dropdown
+        document.querySelectorAll('.dropdown-toggle').forEach(function(dropdownToggle) {
+            new bootstrap.Dropdown(dropdownToggle);
         });
+    } else {
+        console.error('Bootstrap JS tidak dimuat dengan benar');
+    }
+
+    // Tambahkan event handler manual jika Bootstrap tetap tidak berfungsi
+    document.querySelectorAll('.dropdown-toggle').forEach(function(dropdownToggle) {
+        dropdownToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Toggle dropdown menu
+            const dropdownMenu = this.nextElementSibling;
+            if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
+                const isOpen = dropdownMenu.classList.contains('show');
+
+                // Close all open dropdowns first
+                document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                    menu.classList.remove('show');
+                });
+
+                // Toggle this dropdown
+                if (!isOpen) {
+                    dropdownMenu.classList.add('show');
+                    dropdownMenu.setAttribute('data-bs-popper', 'static');
+                }
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.matches('.dropdown-toggle')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                menu.classList.remove('show');
+            });
+        }
+    });
+});
     </script>
+
+    @yield('scripts')
+</body>
+</html>

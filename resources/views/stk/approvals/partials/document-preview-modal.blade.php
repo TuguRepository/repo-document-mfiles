@@ -1,3 +1,8 @@
+<!-- resources/views/stk/partials/document-preview-modal.blade.php -->
+
+<!-- Pastikan meta CSRF token ada di halaman -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <!-- Modal Preview Dokumen -->
 <div class="modal fade" id="documentPreviewModal" tabindex="-1" aria-labelledby="documentPreviewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 90%; height: 80vh;">
@@ -62,18 +67,17 @@
                                     <textarea class="form-control" id="requestNotes" name="notes" rows="2"></textarea>
                                 </div>
 
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="agreeTerms" name="agree_terms" required>
-                                    <label class="form-check-label" for="newAgreeTerms">
-                                        Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.
-                                    </label>
+                                <!-- Pernyataan tanpa checkbox -->
+                                <div class="mb-3 border p-2 bg-light">
+                                    <p class="mb-0"><i class="fas fa-info-circle text-primary me-2"></i>Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.</p>
                                 </div>
 
                                 <div class="d-flex justify-content-between">
                                     <button type="button" class="btn btn-secondary" id="cancelRequestBtn">
                                         <i class="fas fa-times"></i> Batal
                                     </button>
-                                    <button type="submit" class="btn btn-primary">
+                                    <!-- Ubah onclick untuk tidak memeriksa checkbox -->
+                                    <button type="submit" class="btn btn-primary" onclick="handleSubmitRequest(); return false;">
                                         <i class="fas fa-paper-plane"></i> Kirim Permintaan
                                     </button>
                                 </div>
@@ -106,4 +110,26 @@
         </div>
     </div>
 </div>
+<!-- Tambahkan script ini ke bawah modal -->
+<script>
+    function handleSubmitRequest() {
+        // Generate reference number
+        const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
 
+        // Update reference di modal sukses
+        document.getElementById('requestReferenceNumber').textContent = refNumber;
+
+        // Sembunyi modal preview
+        bootstrap.Modal.getInstance(document.getElementById('documentPreviewModal')).hide();
+
+        // Tampilkan modal sukses
+        new bootstrap.Modal(document.getElementById('requestSuccessModal')).show();
+
+        // Reset form
+        document.getElementById('formRequestDownload').reset();
+
+        // Kembalikan ke tampilan preview
+        document.getElementById('downloadRequestForm').classList.add('d-none');
+        document.getElementById('documentPreviewContainer').classList.remove('d-none');
+    }
+</script>

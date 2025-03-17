@@ -175,7 +175,7 @@
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->is('stk/category/*') ? 'active' : '' }}" href="#" id="jenisDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {{ request()->is('stk/category') ? 'active' : '' }}" href="#" id="jenisDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Jenis
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="jenisDropdown">

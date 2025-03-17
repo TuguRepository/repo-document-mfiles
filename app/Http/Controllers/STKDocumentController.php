@@ -1831,57 +1831,132 @@ public function searchDocuments(Request $request)
      }
     }
 
-        // Dalam STKDocumentController.php, sebelum kurung kurawal penutup }
 /**
- * Simple document search (backup approach)
+ * Simple document search
  */
 public function simpleSearchDocuments(Request $request)
 {
     try {
         $query = $request->input('q', '');
 
-        // Get all documents first via getSTKSummary
-        $summaryResponse = $this->getSTKSummary(new Request());
-        $summaryData = json_decode($summaryResponse->getContent(), true);
+        // Log pencarian untuk debugging
+        \Log::info('Pencarian dokumen dengan query: ' . $query);
 
-        if (!isset($summaryData['success']) || !$summaryData['success']) {
+        if (empty($query) || strlen($query) < 2) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mendapatkan data dokumen'
+                'message' => 'Query terlalu pendek. Minimal 2 karakter.',
+                'documents' => []
             ]);
         }
 
-        $allDocuments = $summaryData['documents'] ?? [];
-        $matchingDocuments = [];
+        // Get authentication token if needed
+        $authToken = $this->getAuthToken();
 
-        // Filter documents based on search query
-        foreach ($allDocuments as $doc) {
-            $title = strtolower($doc['title'] ?? '');
-            $documentNumber = strtolower($doc['document_number'] ?? '');
-            $jenis = strtolower($doc['jenis_stk'] ?? '');
+        // Query API atau database
+        $searchUrl = "{$this->mfilesUrl}/objects.aspx?p100=153&q=" . urlencode($query);
 
-            if (strpos($title, strtolower($query)) !== false ||
-                strpos($documentNumber, strtolower($query)) !== false ||
-                strpos($jenis, strtolower($query)) !== false) {
-                $matchingDocuments[] = $doc;
+        $searchResponse = Http::withHeaders([
+            'Accept' => 'application/json',
+            'X-Authentication' => $authToken,
+        ])->get($searchUrl);
+
+        if (!$searchResponse->successful()) {
+            \Log::error('Pencarian gagal: ' . $searchResponse->status(), [
+                'response' => $searchResponse->body()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal melakukan pencarian.',
+                'documents' => []
+            ]);
+        }
+
+        $searchResults = $searchResponse->json();
+        $documents = [];
+
+        // Document type mapping
+        $documentTypeMap = [
+            'A' => 'Pedoman',
+            'B' => 'Tata Kerja Organisasi',
+            'C' => 'Tata Kerja Individu',
+            'D' => 'BPCP',
+            'SOP' => 'Sistem & Prosedur'
+        ];
+
+        // Process documents
+        foreach ($searchResults['Items'] ?? [] as $item) {
+            $objId = $item['ObjVer']['ID'] ?? null;
+            $version = $item['ObjVer']['Version'] ?? null;
+            $title = $item['Title'] ?? 'Untitled Document';
+            $displayId = $item['DisplayID'] ?? '';
+            $createdDate = $item['Created'] ?? '';
+            $modifiedDate = $item['LastModified'] ?? '';
+
+            if (!$objId) continue;
+
+            // Extract document number, type, and year
+            $nomor = '';
+            $jenis = 'Tidak Dikategorikan';
+            $tahun = '';
+            $jenisKode = '';
+
+            if (preg_match('/([A-D])-(\d+)\/([^\/]+)\/(\d{4})/', $title, $matches)) {
+                $jenisKode = $matches[1];
+                $nomor = $matches[0];
+                $tahun = $matches[4];
+                $jenis = $documentTypeMap[$jenisKode] ?? 'Tidak Dikategorikan';
             }
+
+            $documents[] = [
+                'id' => $objId,
+                'version' => $version,
+                'title' => $title,
+                'document_number' => $nomor ?: $displayId,
+                'jenis_stk' => $jenis,
+                'jenis_kode' => $jenisKode,
+                'tahun' => $tahun,
+                'created_date' => $createdDate,
+                'modified_date' => $modifiedDate
+            ];
         }
 
         return response()->json([
             'success' => true,
             'query' => $query,
-            'total' => count($matchingDocuments),
-            'documents' => $matchingDocuments
+            'total' => count($documents),
+            'documents' => $documents
         ]);
 
     } catch (\Exception $e) {
+        \Log::error('Error pada pencarian dokumen: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+
         return response()->json([
             'success' => false,
-            'message' => 'Error: ' . $e->getMessage()
-        ], 500);
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            'documents' => []
+        ]);
     }
-    }
+}
 
+    // Fungsi pencarian cadangan jika M-Files gagal
+    private function fallbackSearch($query)
+    {
+        Log::info('Menggunakan pencarian cadangan untuk: ' . $query);
+
+        // Implementasi pencarian sederhana berdasarkan data di database lokal
+        // atau menggunakan pendekatan lain yang tidak bergantung pada M-Files
+
+        return response()->json([
+            'success' => true,
+            'query' => $query,
+            'message' => 'Menggunakan pencarian alternatif',
+            'documents' => [] // Isi dengan dokumen dari sumber alternatif
+        ]);
+    }
     /**
  * Get document info for preview modal
  */

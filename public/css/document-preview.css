@@ -1,5 +1,6 @@
 /* public/css/document-preview.css */
 /* Ensure checkbox is clickable */
+/* Pastikan checkbox selalu dapat diklik */
 #agreeTerms {
     z-index: 1000;
     position: relative;
@@ -10,10 +11,23 @@
     height: 20px;
 }
 
-/* Make the label clickable too */
+/* Membuat label juga dapat diklik */
 label[for="agreeTerms"] {
     cursor: pointer;
     user-select: none;
+}
+
+/* Animasi checkbox saat dicentang */
+@keyframes checkmark {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.form-check-input:checked {
+    animation: checkmark 0.3s ease-in-out;
+    background-color: #198754;
+    border-color: #198754;
 }
 /* Styling untuk modal preview dokumen */
 #documentPreviewModal .modal-dialog {

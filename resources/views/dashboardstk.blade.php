@@ -88,6 +88,6 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error('Error:', error);
             tokenContainer.innerHTML = `<span class="text-red-600">Error: ${error.message}</span>`;
         });
-}); 
+});
 </script>
 </x-app-layout>

@@ -8,7 +8,504 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
         <link href="{{ asset('css/document-preview.css') }}" rel="stylesheet">
         <style>
-    /* CSS untuk melindungi konten dan mencegah download */
+:root {
+    --primary: #0051a1;
+    --primary-light: #e1f0ff;
+    --secondary: #ff544a;
+    --secondary-light: #fff8f7;
+    --tertiary: #28ca72;
+    --dark: #212b36;
+    --bg-light: #f7f9fc;
+    --border-color: #e7ecf0;
+    --gradient-start: #0a296c;
+    --gradient-end: #0051a1;
+    --text-light: rgba(255, 255, 255, 0.9);
+}
+
+/* General Styles */
+body {
+    font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--dark);
+    line-height: 1.6;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(130deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    padding: 5rem 0 4rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    min-height: 580px;
+}
+
+/* Animated Background Elements */
+.animated-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* Tugu Building - Matching the Photo */
+.tugu-building {
+    position: absolute;
+    bottom: -80px;
+    right: 10%;
+    width: 350px;
+    height: 400px;
+    background-image: url("data:image/svg+xml,%3Csvg width='350' height='400' viewBox='0 0 350 400' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3C!-- Left Building --%3E%3Cpath d='M40 400V100H130V400H40Z' fill='white' fill-opacity='0.15'/%3E%3C!-- Main Central Building --%3E%3Cpath d='M130 400V50H220V400H130Z' fill='white' fill-opacity='0.2'/%3E%3C!-- Triangular Right Section --%3E%3Cpath d='M220 400V100L310 200V400H220Z' fill='white' fill-opacity='0.18'/%3E%3C!-- Windows on Main Building --%3E%3Crect x='150' y='100' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3Crect x='150' y='130' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3Crect x='150' y='160' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3Crect x='150' y='190' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3Crect x='150' y='220' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3Crect x='150' y='250' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3Crect x='150' y='280' width='50' height='8' fill='white' fill-opacity='0.3'/%3E%3C!-- Blue Windows on Right Facade --%3E%3Cpath d='M220 120L240 140V160H220V120Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M220 170L240 190V210H220V170Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M220 220L240 240V260H220V220Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M240 160L260 180V200H240V160Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M240 210L260 230V250H240V210Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M240 260L260 280V300H240V260Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M260 220L280 240V260H260V220Z' fill='white' fill-opacity='0.25'/%3E%3Cpath d='M260 270L280 290V310H260V270Z' fill='white' fill-opacity='0.25'/%3E%3C!-- Angular Entrance Structure --%3E%3Cpath d='M90 400L120 320L150 400H90Z' fill='white' fill-opacity='0.22'/%3E%3C!-- Red Accents on Top --%3E%3Cpath d='M160 50L170 40L180 50H160Z' fill='%23ff544a' fill-opacity='0.6'/%3E%3Cpath d='M190 50L200 40L210 50H190Z' fill='%23ff544a' fill-opacity='0.6'/%3E%3C!-- Tugu Logo --%3E%3Ctext x='155' y='340' font-family='Arial' font-size='24' font-weight='bold' fill='white' fill-opacity='0.6'%3ETUGU%3C/text%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    opacity: 0.8;
+    animation: buildingFloat 6s ease-in-out infinite;
+}
+
+/* Cloud Elements */
+.animated-icon.cloud {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    opacity: 0.2;
+    position: absolute;
+}
+
+.cloud-1 {
+    top: 10%;
+    left: -100px;
+    width: 120px;
+    height: 60px;
+    animation: cloudMove 60s linear infinite;
+}
+
+.cloud-2 {
+    top: 35%;
+    left: -200px;
+    width: 100px;
+    height: 50px;
+    animation: cloudMove 42s linear infinite 10s;
+}
+
+.cloud-3 {
+    top: 15%;
+    left: -150px;
+    width: 80px;
+    height: 40px;
+    animation: cloudMove 70s linear infinite 5s;
+}
+
+/* Corrected Airplane Elements - Right to Left, Facing Left */
+.animated-icon.airplane {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M2 16.21v-1.895L10 8V4a2 2 0 0 1 4 0v4.105L22 14.42v1.789l-8-2.81V18l3 2v1l-4-1-4 1v-1l3-2v-4.685l-8 2.895z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    opacity: 0.35;
+    position: absolute;
+}
+
+.airplane-1 {
+    top: 20%;
+    right: -80px; /* Starting from right */
+    width: 80px;
+    height: 80px;
+    transform: rotate(-10deg) scale(1); /* Facing left */
+    animation: airplaneMoveLeft 15s linear infinite;
+}
+
+.airplane-2 {
+    top: 40%;
+    right: -60px; /* Starting from right */
+    width: 60px;
+    height: 60px;
+    transform: rotate(-15deg) scale(1); /* Facing left */
+    animation: airplaneMoveLeft 1s linear infinite 8s;
+}
+
+/* Animation for airplanes going from right to left */
+@keyframes airplaneMoveLeft {
+    from {
+        transform: translateX(0) rotate(-100deg);
+    }
+    to {
+        transform: translateX(calc(-100vw - 150px)) rotate(-100deg);
+    }
+}
+/* Decorative Elements */
+.animated-icon.plus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 11h-6V5a1 1 0 0 0-2 0v6H5a1 1 0 0 0 0 2h6v6a1 1 0 0 0 2 0v-6h6a1 1 0 0 0 0-2z'/%3E%3C/svg%3E");
+    opacity: 0.15;
+    position: absolute;
+}
+
+.plus-1 {
+    top: 15%;
+    right: 25%;
+    width: 25px;
+    height: 25px;
+    animation: float 8s ease-in-out infinite, rotate 30s linear infinite;
+}
+
+.plus-2 {
+    bottom: 25%;
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    animation: float 7s ease-in-out infinite 1s, rotate 35s linear infinite;
+}
+
+.plus-3 {
+    top: 40%;
+    left: 30%;
+    width: 15px;
+    height: 15px;
+    animation: float 9s ease-in-out infinite 2s, rotate 40s linear infinite;
+}
+
+.animated-icon.circle {
+    width:100px;
+    height: 100px;
+    border-radius: 50%;
+    background: white;
+    opacity: 0.1;
+    position: absolute;
+}
+
+.circle-1 {
+    top: 15%;
+    left: 20%;
+    width: 15px;
+    height: 15px;
+    animation: float 10s ease-in-out infinite;
+}
+
+.circle-2 {
+    bottom: 30%;
+    right: 45%;
+    width: 25px;
+    height: 25px;
+    animation: float 12s ease-in-out infinite 3s;
+}
+
+/* Hero Content */
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    animation: fadeInUp 1s ease-out;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 700px;
+    margin: 0 auto;
+    animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+/* Search Box Styling */
+.search-container {
+    animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+.search-box {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    padding: 0.35rem;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.search-input {
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 30px 0 0 30px;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.search-btn {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 0 30px 30px 0;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    background: #e94a41;
+}
+
+/* Featured Documents */
+.featured-docs {
+    margin-top: 1.5rem;
+}
+
+.featured-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.doc-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: 100%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+}
+
+.animated-card {
+    animation: fadeInUp 0.8s ease-out both;
+}
+
+.doc-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.doc-icon {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.doc-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.doc-content {
+    flex: 1;
+}
+
+.doc-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.doc-text {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.doc-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Category Section */
+.category-section {
+    padding: 4rem 0;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--dark);
+    margin: 0;
+}
+
+.section-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.section-link:hover {
+    color: var(--secondary);
+}
+
+.category-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-light);
+}
+
+.category-icon {
+    background: var(--primary-light);
+    color: var(--primary);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+}
+
+.category-icon i {
+    font-size: 1.75rem;
+}
+
+.category-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.category-count {
+    color: #637381;
+    font-size: 0.95rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Cloud animation - from left to right */
+@keyframes cloudMove {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(100vw + 200px));
+    }
+}
+
+/* Airplane animation - from left to right but facing left
+@keyframes airplaneMoveRight {
+    from {
+        transform: translateX(0) rotate(-10deg) scaleX(-1);
+    }
+    to {
+        transform: translateX(calc(100vw + 150px)) rotate(-10deg) scaleX(-1);
+    }
+} */
+
+@keyframes buildingFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .doc-card {
+        flex-direction: column;
+    }
+
+    .doc-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .tugu-building {
+        right: 5%;
+        transform: scale(0.8);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 4rem 0 3rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .tugu-building {
+        right: 0;
+        transform: scale(0.6);
+    }
+}
 
     /* Styling untuk modal preview dokumen */
     #documentPreviewModal .modal-dialog {
@@ -812,7 +1309,7 @@
         @include('layouts.stk.header')
 
 @include('stk.approvals.partials.document-preview-modal')
-<script src="{{ asset('js/document-preview.js') }}"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -826,173 +1323,7 @@
     });
 </script>
     </head>
-    <body>
-        {{-- <header class="header">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url('/stk/database') }}">
-                <img src="https://jb-app-backend-public-assets.s3.amazonaws.com/media/career_portal_logo_direct_upload/Logo_Tugu_Insurance_PNG.png" alt="Tugu Insurance">
-                <span class="database-title">Sistem Tata Kelola</span>
-            </a>
-
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">Beranda</a>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="jenisDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Jenis
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="jenisDropdown">
-                            <li><a class="dropdown-item" href="{{ url('/stk/category/pedoman') }}">Pedoman</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/stk/category/tko') }}">Tata Kerja Organisasi</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/stk/category/tki') }}">Tata Kerja Individu</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/stk/category/bpcp') }}">BPCP</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/stk/category/sop') }}">SOP</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="tahunDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Tahun
-                        </a>
-                        <ul class="dropdown-menu tahun-dropdown" aria-labelledby="tahunDropdown" id="tahun-dropdown-menu">
-                            <!-- Tahun akan diisi secara dinamis melalui JavaScript -->
-                        </ul>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/stk') }}">Statistik</a>
-                    </li>
-                </ul>
-
-                <div class="header-right">
-                    <button id="logout-button" class="btn btn-outline-danger" onclick="logoutFromSystem()" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-    </header> --}}
-
-    {{-- <!-- Modal Preview Dokumen (Tidak Fullscreen) -->
-    <div class="modal fade" id="documentPreviewModal" tabindex="-1" aria-labelledby="documentPreviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 90%; height: 80vh;">
-            <div class="modal-content" style="height: 100%;">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="documentPreviewModalLabel">Preview Dokumen</h5>
-                    <div class="ms-auto">
-                        <button class="btn btn-outline-primary me-2" id="requestDownloadBtn">
-                            <i class="fas fa-paper-plane"></i> Request Download
-                        </button>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="d-flex justify-content-center align-items-center h-100" id="documentLoadingIndicator">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <span class="ms-2">Memuat dokumen...</span>
-                    </div>
-                    <div id="documentPreviewContainer" class="h-100 d-none">
-                        <iframe id="documentPreviewFrame" style="width: 100%; height: 100%; border: none;"></iframe>
-                    </div>
-                    <div id="documentPreviewError" class="text-center p-5 d-none">
-                        <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
-                        <h4>Gagal memuat dokumen</h4>
-                        <p class="text-muted" id="errorMessage">Terjadi kesalahan saat memuat dokumen.</p>
-                        <a href="#" class="btn btn-primary mt-3" id="retryLoadButton">
-                            <i class="fas fa-sync"></i> Coba Lagi
-                        </a>
-                    </div>
-
-                    <!-- Form Request Download -->
-                    <div id="downloadRequestForm" class="d-none p-4">
-                        <div class="card">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">Request Download Dokumen</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="formRequestDownload">
-                                    <input type="hidden" id="requestDocId" name="document_id">
-                                    <input type="hidden" id="requestDocVersion" name="document_version">
-
-                                    <div class="mb-3">
-                                        <label for="requestReason" class="form-label">Alasan Permintaan <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="requestReason" name="reason" required>
-                                            <option value="">-- Pilih Alasan --</option>
-                                            <option value="reference">Referensi Pekerjaan</option>
-                                            <option value="audit">Audit/Compliance</option>
-                                            <option value="sharing">Sharing Knowledge</option>
-                                            <option value="other">Lainnya</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-3" id="otherReasonContainer" style="display: none;">
-                                        <label for="otherReason" class="form-label">Alasan Lainnya <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" id="otherReason" name="other_reason" rows="2"></textarea>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="requestNotes" class="form-label">Catatan Tambahan</label>
-                                        <textarea class="form-control" id="requestNotes" name="notes" rows="2"></textarea>
-                                    </div>
-
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input" type="checkbox" id="agreeTerms" name="agree_terms" required>
-                                        <label class="form-check-label" for="agreeTerms">
-                                            Saya menyatakan bahwa dokumen ini hanya akan digunakan untuk keperluan internal dan tidak akan dibagikan kepada pihak eksternal tanpa izin.
-                                        </label>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" id="cancelRequestBtn">
-                                            <i class="fas fa-times"></i> Batal
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-paper-plane"></i> Kirim Permintaan
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Konfirmasi Request Download -->
-    <div class="modal fade" id="requestSuccessModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Permintaan Berhasil</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center p-4">
-                    <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
-                    <h4>Permintaan Download Berhasil Dikirim</h4>
-                    <p>Permintaan Anda telah berhasil dikirim dan sedang diproses. Anda akan menerima notifikasi jika permintaan Anda disetujui.</p>
-                    <p class="text-muted">Nomor Referensi: <span id="requestReferenceNumber">REF-12345</span></p>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div> --}}
-    <!-- Login Modal styled like M-Files with fixed vault GUID -->
+    <body>    <!-- Login Modal styled like M-Files with fixed vault GUID -->
     <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1045,99 +1376,168 @@
     </div>
 
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-pattern"></div>
-        <div class="container">
-            <!-- Judul dan subtitle di atas -->
-            <div class="row mb-4">
-                <div class="col-lg-12 text-center">
-                    <h1 class="hero-title">Sistem Tata Kelola Tugu Insurance</h1>
-                    <p class="hero-subtitle">Portal manajemen dokumen yang menghimpun dan menyajikan berbagai standar, pedoman, dan tata kelola perusahaan.</p>
+<!-- Hero Section -->
+<section class="hero-section">
+    <!-- Animated Background Elements -->
+    <div class="animated-bg">
+        <!-- Tugu Building -->
+        <div class="tugu-building"></div>
+
+        <!-- Moving Clouds - Left to Right -->
+        <div class="animated-icon cloud cloud-1"></div>
+        <div class="animated-icon cloud cloud-2"></div>
+        <div class="animated-icon cloud cloud-3"></div>
+
+        <!-- Moving Airplanes - Left to Right but Facing Left -->
+        <div class="animated-icon airplane airplane-1"></div>
+        <div class="animated-icon airplane airplane-2"></div>
+
+        <!-- Decorative Elements -->
+        <div class="animated-icon plus plus-1"></div>
+        <div class="animated-icon plus plus-2"></div>
+        <div class="animated-icon plus plus-3"></div>
+        <div class="animated-icon circle circle-1"></div>
+        <div class="animated-icon circle circle-2"></div>
+    </div>
+
+    <div class="container">
+        <!-- Main content -->
+        <div class="row mb-5">
+            <div class="col-lg-12 text-center">
+                <h1 class="hero-title animated-title">Sistem Tata Kelola Tugu Insurance</h1>
+                <p class="hero-subtitle animated-subtitle">Portal manajemen dokumen yang menghimpun dan menyajikan
+                    berbagai standar, pedoman, dan tata kelola perusahaan.</p>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-7 col-md-10 col-sm-12">
+                <div class="search-container animated-search">
+                    <div class="input-group search-box">
+                        <input type="text" class="form-control search-input" id="global-search-input" placeholder="Cari dokumen STK...">
+                        <button class="search-btn" id="global-search-button">
+                            <i class="fas fa-search me-2"></i> Cari
+                        </button>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Search dan Featured docs di bawah -->
-            <div class="row justify-content-center">
-                <!-- Kolom pencarian -->
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="search-container">
-                        <div class="input-group search-box">
-                            <input type="text" class="form-control search-input" id="global-search-input" placeholder="Cari dokumen STK...">
-                            <button class="search-btn" id="global-search-button">
-                                <i class="fas fa-search me-2"></i> Cari
+        <!-- Featured Documents Section -->
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="featured-docs">
+                    <div class="row g-4" id="featured-docs-container">
+                        <!-- Document Card 1 -->
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="doc-card animated-card" style="animation-delay: 0.1s;">
+                                <div class="doc-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="doc-content">
+                                    <h5 class="doc-title">Pedoman Tata Kelola</h5>
+                                    <p class="doc-text">PD-021/3615/2024 - Kebijakan Pengembangan Produk Digital</p>
+                                    <div class="doc-meta">
+                                        <span><i class="fas fa-eye"></i> 45 views</span>
+                                        <span><i class="fas fa-download"></i> 12</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Document Card 2 -->
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="doc-card animated-card" style="animation-delay: 0.2s;">
+                                <div class="doc-icon">
+                                    <i class="fas fa-file-contract"></i>
+                                </div>
+                                <div class="doc-content">
+                                    <h5 class="doc-title">SOP Underwriting</h5>
+                                    <p class="doc-text">UW-042/3871/2024 - SOP Underwriting Marine Cargo</p>
+                                    <div class="doc-meta">
+                                        <span><i class="fas fa-eye"></i> 37 views</span>
+                                        <span><i class="fas fa-download"></i> 9</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Document Card 3 -->
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="doc-card animated-card" style="animation-delay: 0.3s;">
+                                <div class="doc-icon">
+                                    <i class="fas fa-file-invoice"></i>
+                                </div>
+                                <div class="doc-content">
+                                    <h5 class="doc-title">Tata Kerja Organisasi</h5>
+                                    <p class="doc-text">TKO-027/4310/2024 - Tata Kerja Divisi Reasuransi</p>
+                                    <div class="doc-meta">
+                                        <span><i class="fas fa-eye"></i> 29 views</span>
+                                        <span><i class="fas fa-download"></i> 8</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="featured-label">Dokumen terpopuler 2 minggu terakhir</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results Modal -->
+    <div class="modal fade" id="searchResultModal" tabindex="-1" aria-labelledby="searchResultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="searchResultModalLabel">Hasil Pencarian</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Search input in modal -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" id="modal-search-input" class="form-control" placeholder="Cari dokumen..." aria-label="Cari dokumen">
+                            <button class="btn btn-primary" type="button" id="modal-search-button">
+                                <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Row untuk dokumen -->
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="featured-docs">
-                        <div class="row g-3" id="featured-docs-container">
-                            <!-- Tiga kolom berjajar -->
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <div class="card h-100">
-                                    <h5 class="card-title skeleton-loader" style="height: 20px; width: 80%; background-color: #e7ecf0;"></h5>
-                                    <p class="card-text skeleton-loader" style="height: 16px; width: 90%; background-color: #e7ecf0; margin-top: 10px;"></p>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <div class="card h-100">
-                                    <h5 class="card-title skeleton-loader" style="height: 20px; width: 70%; background-color: #e7ecf0;"></h5>
-                                    <p class="card-text skeleton-loader" style="height: 16px; width: 85%; background-color: #e7ecf0; margin-top: 10px;"></p>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <div class="card h-100">
-                                    <h5 class="card-title skeleton-loader" style="height: 20px; width: 75%; background-color: #e7ecf0;"></h5>
-                                    <p class="card-text skeleton-loader" style="height: 16px; width: 90%; background-color: #e7ecf0; margin-top: 10px;"></p>
-                                </div>
-                            </div>
+                    <!-- Container hasil pencarian -->
+                    <div id="search-results-container">
+                        <!-- Search results will be displayed here -->
+                    </div>
+
+                    <!-- Loading indicator -->
+                    <div class="text-center py-5" id="search-loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                        <div class="text-center mt-3">
-                            <small class="text-white opacity-75">Dokumen terpopuler 2 minggu terakhir</small>
+                        <p class="mt-2">Mencari dokumen...</p>
+                    </div>
+
+                    <!-- No results message -->
+                    <div id="search-no-results" class="d-none">
+                        <div class="text-center py-4">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h4>Tidak ada hasil</h4>
+                            <p class="text-muted">Tidak ditemukan dokumen dengan kata kunci tersebut. Coba gunakan kata kunci lain.</p>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
+    </div>
+</section>
 
-        <!-- Modal Popup untuk Hasil Pencarian -->
-        <div class="modal fade" id="searchResultModal" tabindex="-1" aria-labelledby="searchResultModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="searchResultModalLabel">Hasil Pencarian</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div id="search-results-container">
-                            <!-- Hasil pencarian akan ditampilkan di sini -->
-                            <div class="text-center py-5" id="search-loading">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p class="mt-2">Mencari dokumen...</p>
-                            </div>
-                            <div id="search-no-results" class="d-none">
-                                <div class="text-center py-4">
-                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                                    <h4>Tidak ada hasil</h4>
-                                    <p class="text-muted">Tidak ditemukan dokumen dengan kata kunci tersebut. Coba gunakan kata kunci lain.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
         <section class="content-section">
             <div class="container">
@@ -1276,615 +1676,63 @@
             </div>
         </section>
 
-        {{-- <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="footer-heading">KANTOR PUSAT</h5>
-                    <p class="mb-1">Wisma Tugu I</p>
-                    <p class="mb-1">Jalan H.R. Rasuna Said</p>
-                    <p class="mb-3">Kav. C8-9, Jakarta 12920 Indonesia</p>
-
-                    <p class="mb-1"><i class="fas fa-phone-alt me-2"></i> (021) 52961777</p>
-                    <p class="mb-1"><i class="fas fa-fax me-2"></i> (021) 52961555 ; 52962555</p>
-                    <p class="mb-3"><i class="fas fa-envelope me-2"></i> callTIA@tugu.com</p>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="footer-heading">MEDIA SOSIAL</h5>
-                    <div class="social-links">
-                        <a href="https://www.instagram.com/tugu_insurance/" class="social-link mb-2"><i class="fab fa-instagram me-2"></i> Instagram</a>
-                        <a href="https://twitter.com/tuguinsurance" class="social-link mb-2"><i class="fab fa-twitter me-2"></i> Twitter</a>
-                        <a href="https://www.facebook.com/PTAsuransiTuguPratama/" class="social-link mb-2"><i class="fab fa-facebook-f me-2"></i> Facebook</a>
-                        <a href="https://www.linkedin.com/company/pt-asuransi-tugu-pratama-indonesia-tbk/" class="social-link mb-2"><i class="fab fa-linkedin-in me-2"></i> LinkedIn</a>
-                        <a href="https://www.youtube.com/channel/UC7LO8Y5-x0zPNxV9Q6q0BuA" class="social-link mb-2"><i class="fab fa-youtube me-2"></i> Youtube</a>
-                        <a href="https://www.tiktok.com/@tugu_insurance" class="social-link mb-2"><i class="fab fa-tiktok me-2"></i> Tiktok</a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="footer-heading">PRODUK STK</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url('/stk/category/pedoman') }}">Pedoman</a></li>
-                        <li><a href="{{ url('/stk/category/tko') }}">Tata Kerja Organisasi</a></li>
-                        <li><a href="{{ url('/stk/category/tki') }}">Tata Kerja Individu</a></li>
-                        <li><a href="{{ url('/stk/category/bpcp') }}">BPCP</a></li>
-                        <li><a href="{{ url('/stk/category/sop') }}">SOP</a></li>
-                    </ul>
-
-                    <h5 class="footer-heading mt-4">HOTLINE</h5>
-                    <p class="mb-1"><i class="fab fa-whatsapp me-2"></i> 0811 97 900 100</p>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <div class="mb-4">
-                        <h5 class="footer-heading">TENTANG SISTEM TATA KELOLA</h5>
-                        <p>Sistem Tata Kelola merupakan platform resmi Tugu Insurance yang menghimpun dan menyajikan dokumen Standar dan Tata Kelola dari berbagai unit kerja.</p>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5 class="footer-heading">KEBIJAKAN PRIVASI</h5>
-                        <a href="#" class="text-decoration-underline">Kebijakan Privasi</a>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
-
-            <div class="text-center">
-                <p class="mb-0">&copy; 2025 PT Asuransi Tugu Pratama Indonesia Tbk. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer> --}}
-
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
         @include('layouts.footer')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Load featured documents
-                loadFeaturedDocuments();
-
                 // Setup search functionality
                 setupSearch();
 
                 // Set up document preview in modal
                 setupDocumentPreview();
+
+                // Fetch data from API
+                fetchSTKData();
             });
-
-            // Fungsi untuk setup preview dokumen dengan request download
-    function setupDocumentPreview() {
-        // Cari elemen-elemen modal
-        const previewModal = document.getElementById('documentPreviewModal');
-        const previewFrame = document.getElementById('documentPreviewFrame');
-        const loadingIndicator = document.getElementById('documentLoadingIndicator');
-        const previewContainer = document.getElementById('documentPreviewContainer');
-        const errorContainer = document.getElementById('documentPreviewError');
-        const requestDownloadBtn = document.getElementById('requestDownloadBtn');
-        const downloadRequestForm = document.getElementById('downloadRequestForm');
-        const cancelRequestBtn = document.getElementById('cancelRequestBtn');
-        const requestReason = document.getElementById('requestReason');
-        const otherReasonContainer = document.getElementById('otherReasonContainer');
-
-        // Inisialisasi variabel untuk menyimpan dokumen yang sedang dilihat
-        let currentDocumentId = null;
-        let currentDocumentVersion = null;
-
-        // Event listener untuk tombol request download
-        requestDownloadBtn.addEventListener('click', function() {
-            // Sembunyikan container preview
-            previewContainer.classList.add('d-none');
-            // Tampilkan form request download
-            downloadRequestForm.classList.remove('d-none');
-
-            // Set nilai hidden field
-            document.getElementById('requestDocId').value = currentDocumentId;
-            document.getElementById('requestDocVersion').value = currentDocumentVersion;
-        });
-
-        // Event listener untuk tombol batal
-        cancelRequestBtn.addEventListener('click', function() {
-            // Sembunyikan form request
-            downloadRequestForm.classList.add('d-none');
-            // Tampilkan preview dokumen
-            previewContainer.classList.remove('d-none');
-        });
-
-        // Event listener untuk alasan lainnya
-        requestReason.addEventListener('change', function() {
-            if (this.value === 'other') {
-                otherReasonContainer.style.display = 'block';
-                document.getElementById('otherReason').setAttribute('required', true);
-            } else {
-                otherReasonContainer.style.display = 'none';
-                document.getElementById('otherReason').removeAttribute('required');
-            }
-        });
-
-        // Event listener untuk submit form request
-        document.getElementById('formRequestDownload').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Validasi form
-            if (!this.checkValidity()) {
-                e.stopPropagation();
-                this.classList.add('was-validated');
-                return;
-            }
-
-            // Buat objek FormData untuk mengumpulkan data form
-            const formData = new FormData(this);
-
-            // Generate nomor referensi acak
-            const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
-
-            // Tampilkan nomor referensi di modal sukses
-            document.getElementById('requestReferenceNumber').textContent = refNumber;
-
-            // Simulasi pengiriman permintaan ke server
-            // Dalam implementasi sebenarnya, gunakan fetch untuk mengirim data ke server
-            console.log('Sending download request:', Object.fromEntries(formData));
-
-            // Tutup modal preview
-            bootstrap.Modal.getInstance(previewModal).hide();
-
-            // Tampilkan modal sukses
-            const successModal = new bootstrap.Modal(document.getElementById('requestSuccessModal'));
-            successModal.show();
-
-            // Reset form
-            this.reset();
-            downloadRequestForm.classList.add('d-none');
-            previewContainer.classList.remove('d-none');
-        });
-
-        // Fungsi untuk menampilkan preview dokumen dalam modal
-        window.viewDocumentInModal = function(id, version = 'latest') {
-            // Simpan ID dan versi saat ini
-            currentDocumentId = id;
-            currentDocumentVersion = version;
-
-            // Reset tampilan
-            loadingIndicator.classList.remove('d-none');
-            previewContainer.classList.add('d-none');
-            errorContainer.classList.add('d-none');
-            downloadRequestForm.classList.add('d-none');
-
-            // Update judul modal
-            document.getElementById('documentPreviewModalLabel').textContent = 'Memuat Dokumen...';
-
-            // Tampilkan modal
-            const modal = new bootstrap.Modal(previewModal);
-            modal.show();
-
-            // Siapkan URL untuk iframe
-            const previewUrl = `/stk/preview/${id}${version ? '/' + version : ''}`;
-
-            // Coba dapatkan informasi dokumen
-            fetch(`/api/stk/document-info/${id}${version ? '/' + version : ''}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Authentication': sessionStorage.getItem('mfiles_auth_token') || ''
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.document) {
-                    document.getElementById('documentPreviewModalLabel').textContent = data.document.title || 'Preview Dokumen';
-                }
-            })
-            .catch(error => console.error('Error fetching document info:', error));
-
-            // Coba muat dokumen dalam iframe
-            previewFrame.onload = function() {
-                loadingIndicator.classList.add('d-none');
-                previewContainer.classList.remove('d-none');
-
-                // Periksa apakah iframe memuat konten yang valid
-                try {
-                    // Coba akses contentDocument (akan gagal jika ada error CORS)
-                    const frameContent = previewFrame.contentDocument || previewFrame.contentWindow.document;
-
-                    // Jika dokumen ada tetapi isinya error JSON
-                    const frameText = frameContent.body.textContent;
-                    if (frameText.includes('"success":false') || frameText.includes('error')) {
-                        try {
-                            const errorData = JSON.parse(frameText);
-                            showErrorMessage(errorData.message || 'Terjadi kesalahan saat memuat dokumen');
-                        } catch (e) {
-                            // Jika bukan JSON valid, tampilkan kontennya apa adanya
-                            if (frameText.trim().length > 0) {
-                                // Ada konten teks, mungkin bisa dibaca
-                            } else {
-                                showErrorMessage('Konten dokumen tidak dapat dimuat');
-                            }
-                        }
-                    }
-
-                    // Tambahkan style untuk mencegah download/print
-                    try {
-                        const style = frameContent.createElement('style');
-                        style.textContent = `
-                            @media print { body { display: none; } }
-                            * { user-select: none !important; }
-                        `;
-                        frameContent.head.appendChild(style);
-                    } catch (e) {
-                        console.log('Could not inject anti-print styles');
-                    }
-                } catch (e) {
-                    // Error CORS biasanya berarti dokumen PDF dimuat dengan benar
-                    console.log('Cross-origin frame access - expected for PDFs');
-                }
-            };
-
-            // Handler untuk error loading iframe
-            previewFrame.onerror = function() {
-                showErrorMessage('Gagal memuat dokumen');
-            };
-
-            // Set iframe src untuk memuat dokumen
-            previewFrame.src = previewUrl;
-
-            // Fungsi untuk menampilkan pesan error
-            function showErrorMessage(message) {
-                loadingIndicator.classList.add('d-none');
-                previewContainer.classList.add('d-none');
-                errorContainer.classList.remove('d-none');
-                document.getElementById('errorMessage').textContent = message;
-
-                // Set tombol retry
-                document.getElementById('retryLoadButton').onclick = function(e) {
-                    e.preventDefault();
-                    previewFrame.src = previewUrl;
-                    loadingIndicator.classList.remove('d-none');
-                    errorContainer.classList.add('d-none');
-                };
-            }
-        };
-
-        // Override fungsi previewDocument standard
-        window.previewDocument = function(id, version) {
-            // Gunakan modal untuk preview
-            viewDocumentInModal(id, version);
-            return false; // Prevent default navigation
-        };
-
-        // Process all document cards to open in modal
-        handleDocumentCards();
-
-        // Add mutation observer for dynamically added cards
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length) {
-                    setTimeout(handleDocumentCards, 100);
-                }
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-    }
-
-    // Process document cards to show in modal
-    function handleDocumentCards() {
-        // Target all document-cards and cards
-        const cards = document.querySelectorAll('.document-card, .card');
-
-        cards.forEach(card => {
-            // Skip already processed cards
-            if (card.hasAttribute('data-modal-handler')) {
-                return;
-            }
-
-            // Mark as processed
-            card.setAttribute('data-modal-handler', 'true');
-            card.style.cursor = 'pointer';
-
-            // Get document ID from various sources
-            let docId = card.getAttribute('data-id');
-            let docVersion = card.getAttribute('data-version') || 'latest';
-
-            // Check onclick attribute
-            const onclickAttr = card.getAttribute('onclick');
-            if (!docId && onclickAttr && onclickAttr.includes('previewDocument')) {
-                const match = onclickAttr.match(/previewDocument\((\d+)(?:,\s*['"]?([^'"\)]+)['"]?)?\)/);
-                if (match) {
-                    docId = match[1];
-                    docVersion = match[2] || 'latest';
-
-                    // Replace onclick with our modal function
-                    card.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); viewDocumentInModal(${docId}, '${docVersion}'); return false;`);
-                }
-            }
-
-            // Add click event listener if no onclick exists
-            if (!onclickAttr) {
-                card.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // Try to get ID from attributes
-                    let id = this.getAttribute('data-id');
-                    let version = this.getAttribute('data-version') || 'latest';
-
-                    // If no ID, try from view button
-                    if (!id) {
-                        const viewButton = this.querySelector('.view-btn, .view-doc-btn');
-                        if (viewButton) {
-                            id = viewButton.getAttribute('data-id');
-                            version = viewButton.getAttribute('data-version') || 'latest';
-                        }
-                    }
-
-                    // If ID found, show in modal
-                    if (id) {
-                        viewDocumentInModal(id, version);
-                    }
-                });
-            }
-        });
-
-        // Also handle view buttons directly
-        const viewButtons = document.querySelectorAll('.view-btn, .view-doc-btn');
-        viewButtons.forEach(btn => {
-            // Skip already processed buttons
-            if (btn.hasAttribute('data-modal-handler')) {
-                return;
-            }
-
-            // Mark as processed
-            btn.setAttribute('data-modal-handler', 'true');
-
-            // Get document ID and version
-            const id = btn.getAttribute('data-id');
-            const version = btn.getAttribute('data-version') || 'latest';
-
-            if (id) {
-                // Add click event listener
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    viewDocumentInModal(id, version);
-                });
-            }
-        });
-    }
-
-    // Add to document load event
-    document.addEventListener('DOMContentLoaded', function() {
-        setupDocumentPreview();
-    });
-
-
-            // Process document cards to open in modal
-            function handleDocumentCards() {
-                // All document cards and featured cards
-                const cards = document.querySelectorAll('.document-card, .card');
-
-                cards.forEach(card => {
-                    // Skip already processed cards
-                    if (card.hasAttribute('data-modal-handler')) {
-                        return;
-                    }
-
-                    // Mark as processed
-                    card.setAttribute('data-modal-handler', 'true');
-                    card.style.cursor = 'pointer';
-
-                    // Check if card has onclick attribute
-                    const onclickAttr = card.getAttribute('onclick');
-                    if (onclickAttr && onclickAttr.includes('previewDocument')) {
-                        // Extract ID and version
-                        const match = onclickAttr.match(/previewDocument\((\d+)(?:,\s*['"]?([^'"\)]+)['"]?)?\)/);
-                        if (match) {
-                            const id = match[1];
-                            const version = match[2] || 'latest';
-
-                            // Replace onclick with our modal function
-                            card.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); viewDocumentInModal(${id}, '${version}'); return false;`);
-                        }
-                    } else {
-                        // Add click handler if no onclick exists
-                        card.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            // Try to find ID from data attributes
-                            let id = this.getAttribute('data-id');
-                            let version = this.getAttribute('data-version') || 'latest';
-
-                            // If no ID found, check for view button
-                            if (!id) {
-                                const viewBtn = this.querySelector('.view-btn, .view-doc-btn');
-                                if (viewBtn) {
-                                    id = viewBtn.getAttribute('data-id');
-                                    version = viewBtn.getAttribute('data-version') || 'latest';
-                                }
-                            }
-
-                            // If ID found, show preview
-                            if (id) {
-                                viewDocumentInModal(id, version);
-                            } else {
-                                console.warn('Could not find document ID for preview');
-                            }
-                        });
-                    }
-                });
-
-                // Also handle view buttons directly
-                const viewButtons = document.querySelectorAll('.view-btn, .view-doc-btn');
-                viewButtons.forEach(btn => {
-                    // Skip already processed buttons
-                    if (btn.hasAttribute('data-modal-handler')) {
-                        return;
-                    }
-
-                    // Mark as processed
-                    btn.setAttribute('data-modal-handler', 'true');
-
-                    // Add click handler
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        const id = this.getAttribute('data-id');
-                        const version = this.getAttribute('data-version') || 'latest';
-
-                        if (id) {
-                            viewDocumentInModal(id, version);
-                        }
-                    });
-                });
-            }
-
-            // Function to load featured documents (3 tahun terakhir)
-            function loadFeaturedDocuments() {
-                // Get current year
-                const currentYear = new Date().getFullYear();
-
-                // Make API request
-                fetch('/api/stk/featured-documents')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success && data.documents) {
-                            displayFeaturedDocuments(data.documents);
-                        } else {
-                            console.error('Failed to load featured documents:', data.message);
-                            // Use fallback data
-                            const fallbackDocs = [
-                                {
-                                    title: `STK No. 1 Tahun ${currentYear}`,
-                                    description: 'Pedoman Umum Pelaksanaan Pengadaan dan Anggaran',
-                                    id: 1,
-                                    version: 1
-                                },
-                                {
-                                    title: `STK No. 23 Tahun ${currentYear-1}`,
-                                    description: 'Pendistribusian Dokumen Internal',
-                                    id: 2,
-                                    version: 1
-                                },
-                                {
-                                    title: `STK No. 13 Tahun ${currentYear-2}`,
-                                    description: 'Kebijakan Pengelolaan Dokumen',
-                                    id: 3,
-                                    version: 1
-                                }
-                            ];
-                            displayFeaturedDocuments(fallbackDocs);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading featured documents:', error);
-                        // Use fallback data on error
-                        const fallbackDocs = [
-                            {
-                                title: `STK No. 1 Tahun ${currentYear}`,
-                                description: 'Pedoman Umum Pelaksanaan Pengadaan dan Anggaran',
-                                id: 1,
-                                version: 1
-                            },
-                            {
-                                title: `STK No. 23 Tahun ${currentYear-1}`,
-                                description: 'Pendistribusian Dokumen Internal',
-                                id: 2,
-                                version: 1
-                            },
-                            {
-                                title: `STK No. 13 Tahun ${currentYear-2}`,
-                                description: 'Kebijakan Pengelolaan Dokumen',
-                                id: 3,
-                                version: 1
-                            }
-                        ];
-                        displayFeaturedDocuments(fallbackDocs);
-                    });
-            }
-
-            // Function to display featured documents
-            function displayFeaturedDocuments(documents) {
-                const container = document.getElementById('featured-docs-container');
-                container.innerHTML = '';
-
-                if (documents.length >= 3) {
-                    // Display first two documents side by side
-                    const row1 = document.createElement('div');
-                    row1.className = 'row g-3';
-
-                    // First document
-                    const col1 = document.createElement('div');
-                    col1.className = 'col-md-6';
-                    col1.innerHTML = `
-                        <div class="card" data-id="${documents[0].id}" data-version="${documents[0].version}">
-                            <h5 class="card-title">${documents[0].title}</h5>
-                            <p class="card-text">${documents[0].description}</p>
-                        </div>
-                    `;
-                    row1.appendChild(col1);
-
-                    // Second document
-                    const col2 = document.createElement('div');
-                    col2.className = 'col-md-6';
-                    col2.innerHTML = `
-                        <div class="card" data-id="${documents[1].id}" data-version="${documents[1].version}">
-                            <h5 class="card-title">${documents[1].title}</h5>
-                            <p class="card-text">${documents[1].description}</p>
-                        </div>
-                    `;
-                    row1.appendChild(col2);
-
-                    container.appendChild(row1);
-
-                    // Third document in full width
-                    const row2 = document.createElement('div');
-                    row2.className = 'col-12';
-                    row2.innerHTML = `
-                        <div class="card" data-id="${documents[2].id}" data-version="${documents[2].version}">
-                            <h5 class="card-title">${documents[2].title}</h5>
-                            <p class="card-text">${documents[2].description}</p>
-                        </div>
-                    `;
-                    container.appendChild(row2);
-                } else {
-                    // If less than 3 documents, display what's available
-                    documents.forEach(doc => {
-                        const docEl = document.createElement('div');
-                        docEl.className = 'col-12';
-                        docEl.innerHTML = `
-                            <div class="card" data-id="${doc.id}" data-version="${doc.version}">
-                                <h5 class="card-title">${doc.title}</h5>
-                                <p class="card-text">${doc.description}</p>
-                            </div>
-                        `;
-                        container.appendChild(docEl);
-                    });
-                }
-
-                // Process new cards to open in modal
-                setTimeout(handleDocumentCards, 100);
-            }
 
             // Function to set up search functionality
             function setupSearch() {
+                // Get elements
                 const searchInput = document.getElementById('global-search-input');
                 const searchButton = document.getElementById('global-search-button');
                 const searchModal = new bootstrap.Modal(document.getElementById('searchResultModal'));
 
-                // Handle search button click
+                // Modal search elements
+                const modalSearchInput = document.getElementById('modal-search-input');
+                const modalSearchButton = document.getElementById('modal-search-button');
+
+                // Handle search button click (global)
                 searchButton.addEventListener('click', function() {
                     performSearch(searchInput.value);
                 });
 
-                // Handle Enter key press
+                // Handle Enter key press (global)
                 searchInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         performSearch(searchInput.value);
+                    }
+                });
+
+                // Handle search button click (modal)
+                if (modalSearchButton) {
+                    modalSearchButton.addEventListener('click', function() {
+                        performSearch(modalSearchInput.value);
+                    });
+                }
+
+                // Handle Enter key press (modal)
+                if (modalSearchInput) {
+                    modalSearchInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            performSearch(this.value);
+                        }
+                    });
+                }
+
+                // When modal is shown, copy query from global input
+                document.getElementById('searchResultModal').addEventListener('show.bs.modal', function () {
+                    if (modalSearchInput && searchInput) {
+                        modalSearchInput.value = searchInput.value;
                     }
                 });
 
@@ -1894,517 +1742,720 @@
                         return; // Don't search empty queries
                     }
 
+                    console.log('Starting search for:', query);
+
                     // Show modal and loading state
                     searchModal.show();
                     document.getElementById('search-loading').classList.remove('d-none');
                     document.getElementById('search-no-results').classList.add('d-none');
                     document.getElementById('search-results-container').innerHTML = '';
 
-                    // Perform search with alternative endpoint
+                    // Update modal search input
+                    if (modalSearchInput) {
+                        modalSearchInput.value = query;
+                    }
+
+                    // Perform search with API
                     fetch(`/api/stk/simple-search?q=${encodeURIComponent(query)}`)
                         .then(response => {
                             console.log('Search response status:', response.status);
                             if (!response.ok) {
-                                throw new Error('Network response was not ok');
+                                return fallbackSearch(query);
                             }
                             return response.json();
                         })
                         .then(data => {
                             // Hide loading
                             document.getElementById('search-loading').classList.add('d-none');
+                            console.log('Search results:', data);
 
-    console.log('Search results:', data);
+                            if (data.success && data.documents && data.documents.length > 0) {
+                                console.log('Rendering', data.documents.length, 'documents');
+                                displaySearchResults(data.documents);
+                            } else {
+                                console.log('No results found or empty documents array');
+                                document.getElementById('search-no-results').classList.remove('d-none');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            document.getElementById('search-loading').classList.add('d-none');
+                            document.getElementById('search-results-container').innerHTML = `
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    Terjadi kesalahan saat mencari. Silakan coba lagi. (${error.message})
+                                </div>
+                            `;
+                        });
+                }
 
-    if (data.success && data.documents && data.documents.length > 0) {
-        console.log('Rendering', data.documents.length, 'documents');
-        displaySearchResults(data.documents);
-    } else {
-        console.log('No results found or empty documents array');
-        // Show no results message
-        document.getElementById('search-no-results').classList.remove('d-none');
-    }
-    })
-    .catch(error => {
-    console.error('Search error:', error);
-    // Show error message
-    document.getElementById('search-loading').classList.add('d-none');
-    document.getElementById('search-results-container').innerHTML = `
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            Terjadi kesalahan saat mencari. Silakan coba lagi.
-        </div>
-    `;
-    });
-    }
+                // Fallback search function
+                function fallbackSearch(query) {
+                    console.log('Using fallback search for:', query);
 
-    // Function to display search results
-    function displaySearchResults(documents) {
-    const resultsContainer = document.getElementById('search-results-container');
-    resultsContainer.innerHTML = '';
+                    return fetch(`/stk/search?q=${encodeURIComponent(query)}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Fallback search also failed: ' + response.status);
+                            }
+                            return response.json();
+                        });
+                }
 
-    if (!documents || documents.length === 0) {
-    document.getElementById('search-no-results').classList.remove('d-none');
-    return;
-    }
+                // Function to display search results
+                function displaySearchResults(documents) {
+                    const resultsContainer = document.getElementById('search-results-container');
+                    resultsContainer.innerHTML = '';
 
-    // Create results heading
-    const heading = document.createElement('div');
-    heading.className = 'mb-3';
-    heading.innerHTML = `<h6>Ditemukan ${documents.length} dokumen</h6>`;
-    resultsContainer.appendChild(heading);
+                    if (!documents || documents.length === 0) {
+                        document.getElementById('search-no-results').classList.remove('d-none');
+                        return;
+                    }
 
-    // Create results list
-    documents.forEach(doc => {
-    // Format date
-    let formattedDate = 'Tanggal tidak tersedia';
-    try {
-    if (doc.modified_date) {
-        const date = new Date(doc.modified_date);
-        formattedDate = new Intl.DateTimeFormat('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        }).format(date);
-    }
-    } catch (e) {
-    console.error('Error formatting date:', e);
-    }
+                    // Create results heading
+                    const heading = document.createElement('div');
+                    heading.className = 'mb-3';
+                    heading.innerHTML = `<h6>Ditemukan ${documents.length} dokumen</h6>`;
+                    resultsContainer.appendChild(heading);
 
-    const resultItem = document.createElement('div');
-    resultItem.className = 'search-result-item p-3 border-bottom';
-    resultItem.setAttribute('data-id', doc.id);
-    resultItem.setAttribute('data-version', doc.version || 'latest');
-    resultItem.style.cursor = 'pointer';
-    resultItem.innerHTML = `
-    <div class="d-flex">
-        <div class="flex-shrink-0">
-            <div class="document-icon" style="width:40px;height:40px;background:#e1f0ff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#0051a1;">
-                <i class="fas fa-file-pdf"></i>
-            </div>
-        </div>
-        <div class="flex-grow-1 ms-3">
-            <h5 class="mb-1">${doc.title}</h5>
-            <div class="d-flex flex-wrap justify-content-between">
-                <div>
-                    <span class="badge bg-primary me-2">${doc.jenis_stk || 'Tidak Dikategorikan'}</span>
-                    <small class="text-muted">${doc.document_number || ''}</small>
-                </div>
-                <small class="text-muted">Diperbarui: ${formattedDate}</small>
-            </div>
-        </div>
-    </div>
-    `;
+                    // Create results list
+                    documents.forEach((doc, index) => {
+                        // Format date
+                        let formattedDate = 'Tanggal tidak tersedia';
+                        try {
+                            if (doc.modified_date) {
+                                const date = new Date(doc.modified_date);
+                                formattedDate = new Intl.DateTimeFormat('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                }).format(date);
+                            }
+                        } catch (e) {
+                            console.error('Error formatting date:', e);
+                        }
 
-    // Make item clickable
-    resultItem.addEventListener('click', function() {
-    // Hide modal
-    searchModal.hide();
-    // Open document in modal
-    viewDocumentInModal(this.getAttribute('data-id'), this.getAttribute('data-version'));
-    });
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item p-3 border-bottom';
+                        resultItem.setAttribute('data-id', doc.id);
+                        resultItem.setAttribute('data-version', doc.version || 'latest');
+                        resultItem.style.cursor = 'pointer';
+                        // Set index for animation delay
+                        resultItem.style.setProperty('--index', index);
 
-    resultsContainer.appendChild(resultItem);
-    });
+                        resultItem.innerHTML = `
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="document-icon" style="width:40px;height:40px;background:#e1f0ff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#0051a1;">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="mb-1">${doc.title || 'Dokumen Tanpa Judul'}</h5>
+                                    <div class="d-flex flex-wrap justify-content-between">
+                                        <div>
+                                            <span class="badge bg-primary me-2">${doc.jenis_stk || 'Tidak Dikategorikan'}</span>
+                                            <small class="text-muted">${doc.document_number || ''}</small>
+                                        </div>
+                                        <small class="text-muted">Diperbarui: ${formattedDate}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
 
-    // Process any new document items
-    setTimeout(handleDocumentCards, 100);
-    }
-    }
+                        // Make item clickable
+                        resultItem.addEventListener('click', function() {
+                            // Hide modal
+                            searchModal.hide();
+                            // Open document in modal
+                            viewDocumentInModal(this.getAttribute('data-id'), this.getAttribute('data-version'));
+                        });
 
-    // Toggle password visibility
-    document.getElementById("toggle-password").addEventListener("click", function () {
-    var passwordField = document.getElementById("password");
-    var icon = this.querySelector("i");
+                        resultsContainer.appendChild(resultItem);
+                    });
 
-    if (passwordField.type === "password") {
-    passwordField.type = "text";
-    icon.classList.remove("fa-eye");
-    icon.classList.add("fa-eye-slash");
-    } else {
-    passwordField.type = "password";
-    icon.classList.remove("fa-eye-slash");
-    icon.classList.add("fa-eye");
-    }
-    });
+                    // Process any new document items
+                    setTimeout(handleDocumentCards, 100);
+                }
+            }
 
-    document.addEventListener('DOMContentLoaded', function() {
-    // Ambil data dari API
-    fetchSTKData();
+            // Function to set up document preview
+            function setupDocumentPreview() {
+                // Get modal elements
+                const previewModal = document.getElementById('documentPreviewModal');
+                const previewFrame = document.getElementById('documentPreviewFrame');
+                const loadingIndicator = document.getElementById('documentLoadingIndicator');
+                const previewContainer = document.getElementById('documentPreviewContainer');
+                const errorContainer = document.getElementById('documentPreviewError');
+                const requestDownloadBtn = document.getElementById('requestDownloadBtn');
+                const downloadRequestForm = document.getElementById('downloadRequestForm');
+                const cancelRequestBtn = document.getElementById('cancelRequestBtn');
+                const requestReason = document.getElementById('requestReason');
+                const otherReasonContainer = document.getElementById('otherReasonContainer');
 
-    // Fungsi untuk mengisi dropdown tahun secara dinamis
-    function populateTahunDropdown(years) {
-    const tahunDropdownMenu = document.getElementById('tahun-dropdown-menu');
-    if (tahunDropdownMenu) {
-    // Bersihkan dropdown menu tahun terlebih dahulu
-    tahunDropdownMenu.innerHTML = '';
+                // Variables to store current document info
+                let currentDocumentId = null;
+                let currentDocumentVersion = null;
 
-    // Tambahkan tahun-tahun yang ada
-    if (years && Object.keys(years).length > 0) {
-    Object.keys(years).sort((a, b) => b - a).forEach(year => {
-        const yearLink = document.createElement('li');
-        yearLink.innerHTML = `<a class="dropdown-item" href="#">${year} <span class="badge bg-primary rounded-pill ms-2">${years[year]}</span></a>`;
-        tahunDropdownMenu.appendChild(yearLink);
-    });
-    } else {
-    // Jika tidak ada item tahun, tambahkan tahun default (15 tahun)
-    const currentYear = new Date().getFullYear();
-    for (let i = 0; i < 15; i++) {
-        const year = currentYear - i;
-        const yearLink = document.createElement('li');
-        yearLink.innerHTML = `<a class="dropdown-item" href="#">${year}</a>`;
-        tahunDropdownMenu.appendChild(yearLink);
-    }
-    }
-    }
-    }
+                // Event listener for request download button
+                if (requestDownloadBtn) {
+                    requestDownloadBtn.addEventListener('click', function() {
+                        // Hide preview container
+                        previewContainer.classList.add('d-none');
+                        // Show download request form
+                        downloadRequestForm.classList.remove('d-none');
 
-    // Fungsi untuk menampilkan dokumen terbaru
-    function displayLatestDocuments(documents) {
-    const container = document.getElementById('latest-documents-container');
-    if (!container) return;
+                        // Set values for hidden fields
+                        document.getElementById('requestDocId').value = currentDocumentId;
+                        document.getElementById('requestDocVersion').value = currentDocumentVersion;
+                    });
+                }
 
-    container.innerHTML = '';
+                // Event listener for cancel button
+                if (cancelRequestBtn) {
+                    cancelRequestBtn.addEventListener('click', function() {
+                        // Hide request form
+                        downloadRequestForm.classList.add('d-none');
+                        // Show preview container
+                        previewContainer.classList.remove('d-none');
+                    });
+                }
 
-    if (!documents || documents.length === 0) {
-    container.innerHTML = '<div class="alert alert-info">Belum ada dokumen terbaru.</div>';
-    return;
-    }
+                // Event listener for reason dropdown
+                if (requestReason) {
+                    requestReason.addEventListener('change', function() {
+                        if (this.value === 'other') {
+                            otherReasonContainer.style.display = 'block';
+                            document.getElementById('otherReason').setAttribute('required', true);
+                        } else {
+                            otherReasonContainer.style.display = 'none';
+                            document.getElementById('otherReason').removeAttribute('required');
+                        }
+                    });
+                }
 
-    documents.forEach(doc => {
-    // Format tanggal
-    let formattedDate = 'Tanggal tidak tersedia';
-    try {
-    if (doc.modified_date) {
-        const date = new Date(doc.modified_date);
-        formattedDate = new Intl.DateTimeFormat('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        }).format(date);
-    }
-    } catch (e) {
-    console.error('Error formatting date:', e);
-    }
+                // Event listener for download request form submission
+                const formRequestDownload = document.getElementById('formRequestDownload');
+                if (formRequestDownload) {
+                    formRequestDownload.addEventListener('submit', function(e) {
+                        e.preventDefault();
 
-    const documentCard = document.createElement('div');
-    documentCard.className = 'document-card';
-    documentCard.setAttribute('data-id', doc.id);
-    documentCard.setAttribute('data-version', doc.version || 'latest');
-    documentCard.innerHTML = `
-    <div class="document-icon">
-        <i class="fas fa-file-pdf"></i>
-    </div>
-    <div class="document-content">
-        <h4 class="document-title">${doc.title}</h4>
-        <p class="document-desc">${doc.jenis_stk || 'Tidak Dikategorikan'}</p>
-        <div class="document-meta">Diperbarui: ${formattedDate}</div>
-    </div>
-    `;
+                        // Validate form
+                        if (!this.checkValidity()) {
+                            e.stopPropagation();
+                            this.classList.add('was-validated');
+                            return;
+                        }
 
-    container.appendChild(documentCard);
-    });
+                        // Collect form data
+                        const formData = new FormData(this);
 
-    // Process new document cards
-    setTimeout(handleDocumentCards, 100);
-    }
+                        // Generate reference number
+                        const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
+                        document.getElementById('requestReferenceNumber').textContent = refNumber;
 
-    // Fungsi untuk menampilkan statistik
-    function displayStatistics(summary) {
-    // Total dokumen
-    document.getElementById('total-documents').textContent = summary.total_documents || 0;
+                        // Log form data
+                        console.log('Sending download request:', Object.fromEntries(formData));
 
-    // Jumlah jenis dokumen
-    const docTypes = summary.documents_by_type ? Object.keys(summary.documents_by_type).length : 0;
-    document.getElementById('document-types').textContent = docTypes;
+                        // Close preview modal
+                        bootstrap.Modal.getInstance(previewModal).hide();
 
-    // Tahun terbaru dan jumlah tahun
-    const years = summary.documents_by_year ? Object.keys(summary.documents_by_year) : [];
-    const sortedYears = [...years].sort((a, b) => b - a);
-    document.getElementById('latest-year').textContent = sortedYears[0] || '-';
-    document.getElementById('document-years').textContent = years.length || 0;
+                        // Show success modal
+                        const successModal = new bootstrap.Modal(document.getElementById('requestSuccessModal'));
+                        successModal.show();
 
-    // Dokumen per tahun
-    displayDocumentsByYear(summary.documents_by_year);
-    }
+                        // Reset form
+                        this.reset();
+                        downloadRequestForm.classList.add('d-none');
+                        previewContainer.classList.remove('d-none');
 
-    // Fungsi untuk menampilkan dokumen per tahun
-    function displayDocumentsByYear(documentsByYear) {
-    const container = document.getElementById('documents-by-year');
-    if (!container) return;
+                        // Show success toast
+                        showToast('Permintaan Terkirim', 'Permintaan download dokumen telah berhasil dikirim.', 'success');
+                    });
+                }
 
-    container.innerHTML = '';
+                // Function to display document in modal
+                window.viewDocumentInModal = function(id, version = 'latest') {
+                    // Store current document info
+                    currentDocumentId = id;
+                    currentDocumentVersion = version;
 
-    if (!documentsByYear || Object.keys(documentsByYear).length === 0) {
-    container.innerHTML = '<div class="alert alert-info">Data tahun tidak tersedia.</div>';
-    return;
-    }
+                    console.log(`Opening document ID: ${id}, Version: ${version}`);
 
-    // Urutkan tahun secara descending
-    const sortedYears = Object.keys(documentsByYear).sort((a, b) => b - a);
+                    // Reset modal state
+                    if (loadingIndicator) loadingIndicator.classList.remove('d-none');
+                    if (previewContainer) previewContainer.classList.add('d-none');
+                    if (errorContainer) errorContainer.classList.add('d-none');
+                    if (downloadRequestForm) downloadRequestForm.classList.add('d-none');
 
-    sortedYears.forEach(year => {
-    const count = documentsByYear[year];
+                    // Update modal title
+                    if (previewModal) {
+                        const modalTitleElement = previewModal.querySelector('.modal-title');
+                        if (modalTitleElement) {
+                            modalTitleElement.textContent = 'Memuat Dokumen...';
+                        }
+                    }
 
-    const yearItem = document.createElement('div');
-    yearItem.className = 'activity-item';
-    yearItem.innerHTML = `
-    <div class="activity-icon">
-        <i class="fas fa-calendar-alt"></i>
-    </div>
-    <div class="activity-content">
-        <div class="activity-title">Tahun ${year}</div>
-        <div class="activity-time">${count} dokumen</div>
-    </div>
-    `;
+                    // Show modal
+                    if (previewModal) {
+                        const modal = new bootstrap.Modal(previewModal);
+                        modal.show();
+                    }
 
-    container.appendChild(yearItem);
-    });
-    }
+                    // Document preview URL
+                    const previewUrl = `/stk/preview/${id}${version ? '/' + version : ''}`;
 
-    // Fungsi untuk mengambil data STK dari API
-    function fetchSTKData() {
-    fetch('/api/stk/summary')
-    .then(response => {
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-    return response.json();
-    })
-    .then(data => {
-    if (data.success) {
-        const summary = data.summary;
+                    // Fetch document info
+                    fetch(`/api/stk/document-info/${id}${version ? '/' + version : ''}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Authentication': sessionStorage.getItem('mfiles_auth_token') || ''
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.document) {
+                            // Update modal title with document title
+                            const modalTitleElement = previewModal.querySelector('.modal-title');
+                            if (modalTitleElement) {
+                                modalTitleElement.textContent = data.document.title || 'Preview Dokumen';
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error fetching document info:', error));
 
-        // Tampilkan dokumen terbaru
-        displayLatestDocuments(summary.latest_documents);
+                    // Handle iframe load event
+                    if (previewFrame) {
+                        previewFrame.onload = function() {
+                            if (loadingIndicator) loadingIndicator.classList.add('d-none');
+                            if (previewContainer) previewContainer.classList.remove('d-none');
 
-        // Tampilkan statistik
-        displayStatistics(summary);
+                            // Check if iframe loaded successfully
+                            try {
+                                   // Try to access iframe content (may fail due to CORS restrictions)
+                                   const frameContent = previewFrame.contentDocument || previewFrame.contentWindow.document;
 
-        // Isi dropdown tahun
-        populateTahunDropdown(summary.documents_by_year);
-    } else {
-        console.error('Failed to fetch STK data:', data.message);
-    }
-    })
-    .catch(error => {
-    console.error('Error fetching STK data:', error);
-    });
-    }
-    });
+                                   // Check for error responses
+                                   const frameText = frameContent.body.textContent;
+                                   if (frameText.includes('"success":false') || frameText.includes('error')) {
+                                       try {
+                                           const errorData = JSON.parse(frameText);
+                                           showErrorMessage(errorData.message || 'Terjadi kesalahan saat memuat dokumen');
+                                       } catch (e) {
+                                           // If not valid JSON, but has content
+                                           if (frameText.trim().length > 0) {
+                                               // There is text content that can be read
+                                           } else {
+                                               showErrorMessage('Konten dokumen tidak dapat dimuat');
+                                           }
+                                       }
+                                   }
 
-    // Authentication state management
-    const authManager = {
-    // Check if logged in
-    isLoggedIn: function() {
-    return !!sessionStorage.getItem('mfiles_auth_token');
-    },
+                                   // Add style to prevent printing/downloading
+                                   try {
+                                       const style = frameContent.createElement('style');
+                                       style.textContent = `
+                                           @media print { body { display: none; } }
+                                           * { user-select: none !important; }
+                                       `;
+                                       frameContent.head.appendChild(style);
+                                   } catch (e) {
+                                       console.log('Could not inject anti-print styles');
+                                   }
+                               } catch (e) {
+                                   // CORS error usually means PDF loaded correctly
+                                   console.log('Cross-origin frame access - expected for PDFs');
+                               }
+                           };
 
-    // Update UI based on auth state
-    updateUI: function() {
-    const headerRight = document.querySelector('.header-right');
-    if (!headerRight) return;
+                           // Handle iframe error
+                           previewFrame.onerror = function() {
+                               showErrorMessage('Gagal memuat dokumen');
+                           };
 
-    const username = sessionStorage.getItem('username') || 'User';
+                           // Set iframe source
+                           previewFrame.src = previewUrl;
+                       }
 
-    if (this.isLoggedIn()) {
-    // Show logout button and user info
-    headerRight.innerHTML = `
-    <div class="profile">
-        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=3498db&color=fff" alt="User Profile">
-        <span>${username}</span>
-    </div>
-    <button id="logout-button" class="btn btn-outline-danger ms-3" onclick="authManager.logout()">
-        <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
-    `;
-    } else {
-    // Show login button
-    headerRight.innerHTML = `
-    <button id="login-button" class="btn btn-primary" onclick="authManager.showLogin()">
-        <i class="fas fa-sign-in-alt"></i> Login
-    </button>
-    `;
-    }
-    },
+                       // Function to show error message
+                       function showErrorMessage(message) {
+                           if (loadingIndicator) loadingIndicator.classList.add('d-none');
+                           if (previewContainer) previewContainer.classList.add('d-none');
+                           if (errorContainer) {
+                               errorContainer.classList.remove('d-none');
+                               const errorMessageElement = errorContainer.querySelector('#errorMessage');
+                               if (errorMessageElement) {
+                                   errorMessageElement.textContent = message;
+                               }
 
-    // Show login modal
-    showLogin: function() {
-    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    loginModal.show();
-    },
+                               // Setup retry button
+                               const retryButton = errorContainer.querySelector('#retryLoadButton');
+                               if (retryButton) {
+                                   retryButton.onclick = function(e) {
+                                       e.preventDefault();
+                                       if (previewFrame) previewFrame.src = previewUrl;
+                                       if (loadingIndicator) loadingIndicator.classList.remove('d-none');
+                                       if (errorContainer) errorContainer.classList.add('d-none');
+                                   };
+                               }
+                           }
+                       }
+                   };
 
-    // Handle login success
-    handleLoginSuccess: function(token, username) {
-    sessionStorage.setItem('mfiles_auth_token', token);
-    sessionStorage.setItem('username', username);
-    this.updateUI();
-    // Reload data
-    fetchSTKSummary();
-    },
+                   // Override standard previewDocument function
+                   window.previewDocument = function(id, version) {
+                       viewDocumentInModal(id, version);
+                       return false; // Prevent default navigation
+                   };
 
-    // Logout
-    logout: function() {
-    if (confirm('Apakah Anda yakin ingin keluar?')) {
-    fetch('/mfiles/logout', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-    }
-    })
-    .finally(() => {
-    // Clear session storage
-    sessionStorage.removeItem('mfiles_auth_token');
-    sessionStorage.removeItem('username');
+                   // Process all document cards to open in modal
+                   handleDocumentCards();
 
-    // Update UI
-    this.updateUI();
+                   // Add mutation observer for dynamically added cards
+                   const observer = new MutationObserver(function(mutations) {
+                       mutations.forEach(function(mutation) {
+                           if (mutation.addedNodes.length) {
+                               setTimeout(handleDocumentCards, 100);
+                           }
+                       });
+                   });
 
-    // Show message
-    alert('Logout berhasil');
+                   observer.observe(document.body, { childList: true, subtree: true });
+               }
 
-    // Reload page
-    window.location.reload();
-    });
-    }
-    }
-    };
+               // Function to process document cards
+               function handleDocumentCards() {
+                   // Target all document-cards and cards
+                   const cards = document.querySelectorAll('.document-card, .card');
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-    // Update UI based on auth state
-    authManager.updateUI();
+                   cards.forEach(card => {
+                       // Skip already processed cards
+                       if (card.hasAttribute('data-modal-handler')) {
+                           return;
+                       }
 
-    // Check if authenticated before loading data
-    if (authManager.isLoggedIn()) {
-    fetchSTKSummary();
-    } else {
-    authManager.showLogin();
-    }
+                       // Mark as processed
+                       card.setAttribute('data-modal-handler', 'true');
+                       card.style.cursor = 'pointer';
 
-    // Login form handler
-    document.getElementById('login-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+                       // Get document ID from attributes
+                       let docId = card.getAttribute('data-id');
+                       let docVersion = card.getAttribute('data-version') || 'latest';
 
-    // Show loading
-    document.getElementById('login-form').classList.add('d-none');
-    document.getElementById('login-loading').classList.remove('d-none');
+                       // Check onclick attribute
+                       const onclickAttr = card.getAttribute('onclick');
+                       if (!docId && onclickAttr && onclickAttr.includes('previewDocument')) {
+                           const match = onclickAttr.match(/previewDocument\((\d+)(?:,\s*['"]?([^'"\)]+)['"]?)?\)/);
+                           if (match) {
+                               docId = match[1];
+                               docVersion = match[2] || 'latest';
 
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+                               // Replace onclick with modal function
+                               card.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); viewDocumentInModal(${docId}, '${docVersion}'); return false;`);
+                           }
+                       }
 
-    // Login request
-    fetch('http://dashboard-stk.test/api/mfiles/login', {
-    method: 'POST',
-    headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-    },
-    body: JSON.stringify({
-    username: username,
-    password: password
-    })
-    })
-    .then(response => response.json())
-    .then(data => {
-    if (data.success && data.token) {
-    // Hide modal
-    bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                       // Add click event listener if no onclick exists
+                       if (!onclickAttr) {
+                           card.addEventListener('click', function(e) {
+                               e.preventDefault();
+                               e.stopPropagation();
 
-    // Handle success
-    authManager.handleLoginSuccess(data.token, data.username);
+                               // Try to get ID from card attributes
+                               let id = this.getAttribute('data-id');
+                               let version = this.getAttribute('data-version') || 'latest';
 
-    // Show success message
-    showToast('Login Successful', `Welcome, ${data.username}!`, 'success');
-    } else {
-    // Show error
-    document.getElementById('login-form').classList.remove('d-none');
-    document.getElementById('login-loading').classList.add('d-none');
-    document.getElementById('login-error').textContent = data.message || 'Login failed';
-    document.getElementById('login-error').classList.remove('d-none');
-    }
-    })
-    .catch(error => {
-    // Show error
-    document.getElementById('login-form').classList.remove('d-none');
-    document.getElementById('login-loading').classList.add('d-none');
-    document.getElementById('login-error').textContent = 'Network error';
-    document.getElementById('login-error').classList.remove('d-none');
-    });
-    });
-    });
+                               // If no ID, try to get from child button
+                               if (!id) {
+                                   const viewButton = this.querySelector('.view-btn, .view-doc-btn');
+                                   if (viewButton) {
+                                       id = viewButton.getAttribute('data-id');
+                                       version = viewButton.getAttribute('data-version') || 'latest';
+                                   }
+                               }
 
-    // Show toast notification
-    function showToast(title, message, type = 'info') {
-    // Remove existing toast container
-    const existingContainer = document.querySelector('.toast-container');
-    if (existingContainer) {
-    document.body.removeChild(existingContainer);
-    }
+                               // If ID found, show document in modal
+                               if (id) {
+                                   viewDocumentInModal(id, version);
+                               }
+                           });
+                       }
+                   });
 
-    // Create new toast container
-    const toastContainer = document.createElement('div');
-    toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                   // Process view buttons directly
+                   const viewButtons = document.querySelectorAll('.view-btn, .view-doc-btn');
+                   viewButtons.forEach(btn => {
+                       // Skip already processed buttons
+                       if (btn.hasAttribute('data-modal-handler')) {
+                           return;
+                       }
 
-    // Determine icon and background based on type
-    let icon, bgClass;
-    switch (type) {
-    case 'success':
-    icon = 'fas fa-check-circle';
-    bgClass = 'text-bg-success';
-    break;
-    case 'error':
-    icon = 'fas fa-exclamation-circle';
-    bgClass = 'text-bg-danger';
-    break;
-    case 'warning':
-    icon = 'fas fa-exclamation-triangle';
-    bgClass = 'text-bg-warning';
-    break;
-    default:
-    icon = 'fas fa-info-circle';
-    bgClass = 'text-bg-info';
-    }
+                       // Mark as processed
+                       btn.setAttribute('data-modal-handler', 'true');
 
-    toastContainer.innerHTML = `
-    <div class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-    <div class="toast-body">
-        <div class="d-flex align-items-center">
-            <i class="${icon} me-2"></i>
-            <div>
-                <strong>${title}</strong>
-                <div>${message}</div>
-            </div>
-        </div>
-    </div>
-    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-    </div>
-    `;
+                       // Get document ID and version
+                       const id = btn.getAttribute('data-id');
+                       const version = btn.getAttribute('data-version') || 'latest';
 
-    document.body.appendChild(toastContainer);
+                       if (id) {
+                           // Add click event handler
+                           btn.addEventListener('click', function(e) {
+                               e.preventDefault();
+                               e.stopPropagation();
+                               viewDocumentInModal(id, version);
+                           });
+                       }
+                   });
+               }
 
-    const toastEl = toastContainer.querySelector('.toast');
-    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-    toast.show();
+               // Function to fetch STK data
+               function fetchSTKData() {
+                   fetch('/api/stk/summary')
+                       .then(response => {
+                           if (!response.ok) {
+                               throw new Error('Network response was not ok');
+                           }
+                           return response.json();
+                       })
+                       .then(data => {
+                           if (data.success) {
+                               const summary = data.summary;
 
-    // Auto remove after hiding
-    toastEl.addEventListener('hidden.bs.toast', () => {
-    if (document.body.contains(toastContainer)) {
-    document.body.removeChild(toastContainer);
-    }
-    });
-    }
+                               // Display latest documents
+                               displayLatestDocuments(summary.latest_documents);
 
-    function logoutFromSystem() {
-    if (confirm('Apakah Anda yakin ingin keluar?')) {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.reload();
-    }
-    }
-    </script>
-    </body>
-    </html>
+                               // Display statistics
+                               displayStatistics(summary);
+
+                               // Populate year dropdown
+                               populateTahunDropdown(summary.documents_by_year);
+                           } else {
+                               console.error('Failed to fetch STK data:', data.message);
+                           }
+                       })
+                       .catch(error => {
+                           console.error('Error fetching STK data:', error);
+                       });
+               }
+
+               // Function to display latest documents
+               function displayLatestDocuments(documents) {
+                   const container = document.getElementById('latest-documents-container');
+                   if (!container) return;
+
+                   container.innerHTML = '';
+
+                   if (!documents || documents.length === 0) {
+                       container.innerHTML = '<div class="alert alert-info">Belum ada dokumen terbaru.</div>';
+                       return;
+                   }
+
+                   documents.forEach(doc => {
+                       // Format date
+                       let formattedDate = 'Tanggal tidak tersedia';
+                       try {
+                           if (doc.modified_date) {
+                               const date = new Date(doc.modified_date);
+                               formattedDate = new Intl.DateTimeFormat('id-ID', {
+                                   day: 'numeric',
+                                   month: 'long',
+                                   year: 'numeric'
+                               }).format(date);
+                           }
+                       } catch (e) {
+                           console.error('Error formatting date:', e);
+                       }
+
+                       const documentCard = document.createElement('div');
+                       documentCard.className = 'document-card';
+                       documentCard.setAttribute('data-id', doc.id);
+                       documentCard.setAttribute('data-version', doc.version || 'latest');
+                       documentCard.innerHTML = `
+                           <div class="document-icon">
+                               <i class="fas fa-file-pdf"></i>
+                           </div>
+                           <div class="document-content">
+                               <h4 class="document-title">${doc.title}</h4>
+                               <p class="document-desc">${doc.jenis_stk || 'Tidak Dikategorikan'}</p>
+                               <div class="document-meta">Diperbarui: ${formattedDate}</div>
+                           </div>
+                       `;
+
+                       container.appendChild(documentCard);
+                   });
+
+                   // Process new document cards
+                   setTimeout(handleDocumentCards, 100);
+               }
+
+               // Function to display statistics
+               function displayStatistics(summary) {
+                   // Update total documents count
+                   document.getElementById('total-documents').textContent = summary.total_documents || 0;
+
+                   // Update document types count
+                   const docTypes = summary.documents_by_type ? Object.keys(summary.documents_by_type).length : 0;
+                   document.getElementById('document-types').textContent = docTypes;
+
+                   // Update latest year and number of years
+                   const years = summary.documents_by_year ? Object.keys(summary.documents_by_year) : [];
+                   const sortedYears = [...years].sort((a, b) => b - a);
+                   document.getElementById('latest-year').textContent = sortedYears[0] || '-';
+                   document.getElementById('document-years').textContent = years.length || 0;
+
+                   // Display documents by year
+                   displayDocumentsByYear(summary.documents_by_year);
+               }
+
+               // Function to display documents by year
+               function displayDocumentsByYear(documentsByYear) {
+                   const container = document.getElementById('documents-by-year');
+                   if (!container) return;
+
+                   container.innerHTML = '';
+
+                   if (!documentsByYear || Object.keys(documentsByYear).length === 0) {
+                       container.innerHTML = '<div class="alert alert-info">Data tahun tidak tersedia.</div>';
+                       return;
+                   }
+
+                   // Sort years in descending order
+                   const sortedYears = Object.keys(documentsByYear).sort((a, b) => b - a);
+
+                   sortedYears.forEach(year => {
+                       const count = documentsByYear[year];
+
+                       const yearItem = document.createElement('div');
+                       yearItem.className = 'activity-item';
+                       yearItem.innerHTML = `
+                           <div class="activity-icon">
+                               <i class="fas fa-calendar-alt"></i>
+                           </div>
+                           <div class="activity-content">
+                               <div class="activity-title">Tahun ${year}</div>
+                               <div class="activity-time">${count} dokumen</div>
+                           </div>
+                       `;
+
+                       container.appendChild(yearItem);
+                   });
+               }
+
+               // Function to populate year dropdown
+               function populateTahunDropdown(years) {
+                   const tahunDropdownMenu = document.getElementById('tahun-dropdown-menu');
+                   if (!tahunDropdownMenu) return;
+
+                   tahunDropdownMenu.innerHTML = '';
+
+                   if (years && Object.keys(years).length > 0) {
+                       Object.keys(years).sort((a, b) => b - a).forEach(year => {
+                           const count = years[year];
+                           const yearLink = document.createElement('li');
+                           yearLink.innerHTML = `<a class="dropdown-item" href="#">${year} <span class="badge bg-primary rounded-pill ms-2">${count}</span></a>`;
+                           tahunDropdownMenu.appendChild(yearLink);
+                       });
+                   } else {
+                       // If no years data available, add default years (last 15 years)
+                       const currentYear = new Date().getFullYear();
+                       for (let i = 0; i < 15; i++) {
+                           const year = currentYear - i;
+                           const yearLink = document.createElement('li');
+                           yearLink.innerHTML = `<a class="dropdown-item" href="#">${year}</a>`;
+                           tahunDropdownMenu.appendChild(yearLink);
+                       }
+                   }
+               }
+
+               // Toggle password visibility
+               document.getElementById("toggle-password").addEventListener("click", function () {
+                   var passwordField = document.getElementById("password");
+                   var icon = this.querySelector("i");
+
+                   if (passwordField.type === "password") {
+                       passwordField.type = "text";
+                       icon.classList.remove("fa-eye");
+                       icon.classList.add("fa-eye-slash");
+                   } else {
+                       passwordField.type = "password";
+                       icon.classList.remove("fa-eye-slash");
+                       icon.classList.add("fa-eye");
+                   }
+               });
+
+               // Function to show toast notifications
+               function showToast(title, message, type = 'info') {
+                   // Remove existing toast container
+                   const existingContainer = document.querySelector('.toast-container');
+                   if (existingContainer) {
+                       document.body.removeChild(existingContainer);
+                   }
+
+                   // Create new toast container
+                   const toastContainer = document.createElement('div');
+                   toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+
+                   // Determine icon and background based on type
+                   let icon, bgClass;
+                   switch (type) {
+                       case 'success':
+                           icon = 'fas fa-check-circle';
+                           bgClass = 'text-bg-success';
+                           break;
+                       case 'error':
+                           icon = 'fas fa-exclamation-circle';
+                           bgClass = 'text-bg-danger';
+                           break;
+                       case 'warning':
+                           icon = 'fas fa-exclamation-triangle';
+                           bgClass = 'text-bg-warning';
+                           break;
+                       default:
+                           icon = 'fas fa-info-circle';
+                           bgClass = 'text-bg-info';
+                   }
+
+                   toastContainer.innerHTML = `
+                       <div class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                           <div class="d-flex">
+                               <div class="toast-body">
+                                   <div class="d-flex align-items-center">
+                                       <i class="${icon} me-2"></i>
+                                       <div>
+                                           <strong>${title}</strong>
+                                           <div>${message}</div>
+                                       </div>
+                                   </div>
+                               </div>
+                               <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                           </div>
+                       </div>
+                   `;
+
+                   document.body.appendChild(toastContainer);
+
+                   const toastEl = toastContainer.querySelector('.toast');
+                   const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                   toast.show();
+
+                   // Auto remove after hiding
+                   toastEl.addEventListener('hidden.bs.toast', () => {
+                       if (document.body.contains(toastContainer)) {
+                           document.body.removeChild(toastContainer);
+                       }
+                   });
+               }
+
+               // Function to logout from system
+               function logoutFromSystem() {
+                   if (confirm('Apakah Anda yakin ingin keluar?')) {
+                       localStorage.clear();
+                       sessionStorage.clear();
+                       window.location.reload();
+                   }
+               }
+           </script>
+           <script src="{{ asset('js/document-preview.js') }}"></script>
+           <script src="{{ asset('js/approval-requests.js') }}"></script>
+        </body>
+        </html>

@@ -2,78 +2,267 @@
 
 namespace App\Http\Controllers\STK;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller; // Tambahkan ini
 use Illuminate\Http\Request;
-use App\Models\DownloadRequest; // Make sure this model exists
+use App\Models\DownloadRequest;
+use App\Models\Document;
+use App\Models\Activity;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ApprovalController extends Controller
 {
     /**
-     * Display the approval dashboard.
-     *
-     * @return \Illuminate\View\View
+     * Display the approval requests page
      */
     public function index()
     {
-        // Get pending requests
-        $pendingRequests = DownloadRequest::where('status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->paginate(7, ['*'], 'pending_page');
-
-        // Get approved requests
-        $approvedRequests = DownloadRequest::where('status', 'approved')
-            ->orderBy('reviewed_at', 'desc')
-            ->paginate(5, ['*'], 'approved_page');
-
-        // Get rejected requests
-        $rejectedRequests = DownloadRequest::where('status', 'rejected')
-            ->orderBy('reviewed_at', 'desc')
-            ->paginate(5, ['*'], 'rejected_page');
+        // Dapatkan data untuk dokumen
+        $documents = Document::all()->keyBy('id')->toArray();
 
         return view('stk.approvals.index', [
-            'pendingRequests' => $pendingRequests,
-            'approvedRequests' => $approvedRequests,
-            'rejectedRequests' => $rejectedRequests
+            'documents' => $documents
         ]);
     }
 
     /**
-     * Approve a download request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
+     * Get requests based on status
      */
-    public function approveRequest(Request $request, $id)
+    public function getRequests(Request $request)
     {
-        $downloadRequest = DownloadRequest::findOrFail($id);
-        $downloadRequest->status = 'approved';
-        $downloadRequest->reviewer_id = auth()->id();
-        $downloadRequest->reviewed_at = now();
-        $downloadRequest->review_notes = $request->input('notes');
-        $downloadRequest->save();
+        try {
+            $status = $request->input('status', 'pending');
+            $perPage = $request->input('per_page', 5);
 
-        return redirect()->route('stk.approvals.index')
-            ->with('success', 'Request approved successfully.');
+            // Gunakan model yang benar untuk download requests
+            $query = DownloadRequest::where('status', $status);
+
+            // Handle filter lainnya jika ada
+
+            $requests = $query->paginate($perPage);
+
+            return response()->json($requests);
+        } catch (\Exception $e) {
+            \Log::error('Error in getRequests: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat memuat data permintaan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getCounts()
+    {
+        $pendingCount = DownloadRequest::where('status', 'pending')->count();
+        $approvedCount = DownloadRequest::where('status', 'approved')->count();
+        $rejectedCount = DownloadRequest::where('status', 'rejected')->count();
+
+        Log::info('Download request counts', [
+            'pending' => $pendingCount,
+            'approved' => $approvedCount,
+            'rejected' => $rejectedCount
+        ]);
+
+        return response()->json([
+            'pending' => $pendingCount,
+            'approved' => $approvedCount,
+            'rejected' => $rejectedCount
+        ]);
+    }
+    /**
+     * Get recent activities
+     */
+    // Implementasi method getActivities yang aman
+    public function getActivities()
+{
+    try {
+        // Dapatkan data aktivitas dari tabel download_requests
+        $requests = DownloadRequest::select(
+                'id',
+                'user_name',
+                'document_title',
+                'document_number',
+                'status',
+                'created_at',
+                'updated_at',
+                'approved_at',
+                'rejected_at',
+                'user_id'
+            )
+            ->latest('updated_at')
+            ->take(10)
+            ->get();
+
+        $activities = [];
+
+        foreach($requests as $request) {
+            $type = 'request';
+            $timestamp = $request->created_at;
+
+            if ($request->status === 'approved') {
+                $type = 'approve';
+                $timestamp = $request->approved_at ?? $request->updated_at;
+            } else if ($request->status === 'rejected') {
+                $type = 'reject';
+                $timestamp = $request->rejected_at ?? $request->updated_at;
+            }
+
+            $activities[] = [
+                'id' => $request->id,
+                'type' => $type,
+                'created_at' => $timestamp,
+                'download_request' => [
+                    'id' => $request->id,
+                    'user_name' => $request->user_name,
+                    'document_title' => $request->document_title,
+                    'document_number' => $request->document_number
+                ]
+            ];
+        }
+
+        return response()->json($activities);
+    } catch (\Exception $e) {
+        \Log::error('Error in getActivities: ' . $e->getMessage());
+
+        return response()->json([
+            'message' => 'Terjadi kesalahan saat memuat aktivitas',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+    /**
+     * Approve a request
+     */
+    public function approve(Request $request)
+    {
+        $validator = $request->validate([
+            'request_id' => 'required',
+            'note' => 'nullable|string',
+            'send_email' => 'boolean',
+            'limit_time' => 'boolean'
+        ]);
+
+        try {
+            $downloadRequest = DownloadRequest::findOrFail($request->request_id);
+
+            // Update request
+            $downloadRequest->status = 'approved';
+            $downloadRequest->approved_by = Auth::id();
+            $downloadRequest->approved_at = now();
+            $downloadRequest->admin_note = $request->note;
+
+            // Set expiry if limit_time is true
+            if ($request->limit_time) {
+                $downloadRequest->token_expires_at = now()->addDay();
+            }
+
+            $downloadRequest->save();
+
+            // Create activity log
+            $activity = new Activity();
+            $activity->user_id = Auth::id();
+            $activity->user_name = Auth::user()->name;
+            $activity->type = 'approve';
+            $activity->download_request_id = $downloadRequest->id;
+            $activity->save();
+
+            // Send email notification if requested
+            if ($request->send_email) {
+                // Email code would go here
+                // Mail::to($downloadRequest->user_email)->send(new RequestApproved($downloadRequest));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permintaan berhasil disetujui'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error approving request: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyetujui permintaan'
+            ], 500);
+        }
     }
 
     /**
-     * Reject a download request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
+     * Reject a request
      */
-    public function rejectRequest(Request $request, $id)
+    public function reject(Request $request)
     {
-        $downloadRequest = DownloadRequest::findOrFail($id);
-        $downloadRequest->status = 'rejected';
-        $downloadRequest->reviewer_id = auth()->id();
-        $downloadRequest->reviewed_at = now();
-        $downloadRequest->review_notes = $request->input('notes');
-        $downloadRequest->save();
+        $validator = $request->validate([
+            'request_id' => 'required',
+            'rejection_reason' => 'required|string',
+            'note' => 'required|string',
+            'alternative_doc' => 'nullable|string'
+        ]);
 
-        return redirect()->route('stk.approvals.index')
-            ->with('success', 'Request rejected successfully.');
+        try {
+            $downloadRequest = DownloadRequest::findOrFail($request->request_id);
+
+            // Update request
+            $downloadRequest->status = 'rejected';
+            $downloadRequest->rejected_by = Auth::id();
+            $downloadRequest->rejected_at = now();
+            $downloadRequest->rejection_reason = $request->rejection_reason;
+            $downloadRequest->admin_note = $request->note;
+
+            if ($request->has('alternative_doc')) {
+                $downloadRequest->alternative_document_id = $request->alternative_doc;
+            }
+
+            $downloadRequest->save();
+
+            // Create activity log
+            $activity = new Activity();
+            $activity->user_id = Auth::id();
+            $activity->user_name = Auth::user()->name;
+            $activity->type = 'reject';
+            $activity->download_request_id = $downloadRequest->id;
+            $activity->save();
+
+            // Email notification would go here
+            // Mail::to($downloadRequest->user_email)->send(new RequestRejected($downloadRequest));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permintaan berhasil ditolak'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error rejecting request: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menolak permintaan'
+            ], 500);
+        }
+    }
+
+    /**
+     * Display document preview
+     */
+    public function previewDocument($id)
+    {
+        try {
+            // Log untuk debugging
+            \Log::info("Previewing document with ID: $id");
+
+            // Gunakan data sederhana untuk sementara
+            return response()->json([
+                'id' => $id,
+                'title' => 'Dokumen Preview',
+                'code' => 'DOC-' . date('Ymd'),
+                'category' => 'Dokumen'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error previewing document: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat memuat preview dokumen',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
