@@ -2,69 +2,77 @@
 namespace App\Queries;
 class EmployeeQueries
 {
-    public static function getRoleToaQuery()
-    {
-        return "
-            WITH combined_apps AS (
-                SELECT
-                    megi.\"BP\",
-                    megi.email,
-                    megi.\"name\",
-                    ma.app_id,
-                    ma.app_name,
-                    ma.app_url,
-                    ma.img_url,
-                    ma.environment,
-                    met.title_id,
-                    met.type,
-                    met.seq_nbr,
-                    met.start_effective_date,
-                    met.end_effective_date,
-                    met.remark,
-                    mcch.cost_center_name,
-                    'employee_mapping' as source
-                FROM m_employee_general_info AS megi
-                JOIN map_employee_application AS mea ON megi.\"BP\" = mea.\"PARTNER\"
-                JOIN map_employee_title AS met ON megi.\"BP\" = met.\"BP\"
-                JOIN m_application AS ma ON ma.app_id = mea.app_id
-                JOIN map_cost_center_hierarchy AS mcch ON met.cost_center = mcch.cost_center
-                WHERE LOWER(megi.email) = LOWER(?)
-                AND CURRENT_DATE BETWEEN met.start_effective_date
-                    AND COALESCE(met.end_effective_date, '9999-12-31'::date)
+    // Fix in your Laravel controller or repository
+// Tambahkan method ini di dalam class App\Queries\EmployeeQueries
 
-                UNION ALL
+/**
+ * Get the SQL query for retrieving user roles based on TOA data
+ *
+ * @return string The SQL query
+ */
+public static function getRoleToaQuery(): string
+{
+    return '
+        WITH combined_apps AS (
+            SELECT
+                megi."BP",
+                megi.email,
+                megi."name",
+                ma.app_id,
+                ma.app_name,
+                ma.app_url,
+                ma.img_url,
+                ma.environment,
+                met.title_id,
+                met.type,
+                met.seq_nbr,
+                met.start_effective_date,
+                met.end_effective_date,
+                met.remark,
+                mcch.cost_center_name,
+                \'employee_mapping\' as source
+            FROM m_employee_general_info AS megi
+            JOIN map_employee_application AS mea ON megi."BP" = mea."PARTNER"
+            JOIN map_employee_title AS met ON megi."BP" = met."BP"
+            JOIN m_application AS ma ON ma.app_id = mea.app_id
+            JOIN map_cost_center_hierarchy AS mcch ON met.cost_center = mcch.cost_center
+            WHERE LOWER(megi.email) = LOWER(?)
+            AND CURRENT_DATE BETWEEN met.start_effective_date
+                AND COALESCE(met.end_effective_date, \'9999-12-31\'::date)
 
-                SELECT
-                    megi.\"BP\",
-                    megi.email,
-                    megi.\"name\",
-                    ma.app_id,
-                    ma.app_name,
-                    ma.app_url,
-                    ma.img_url,
-                    ma.environment,
-                    met.title_id,
-                    met.type,
-                    met.seq_nbr,
-                    met.start_effective_date,
-                    met.end_effective_date,
-                    met.remark,
-                    mcch.cost_center_name,
-                    'cost_center_mapping' as source
-                FROM m_employee_general_info AS megi
-                JOIN map_employee_title AS met ON megi.\"BP\" = met.\"BP\"
-                JOIN map_cost_center_application AS mcca ON met.cost_center = mcca.cost_center
-                JOIN m_application AS ma ON ma.app_id = mcca.app_id
-                JOIN map_cost_center_hierarchy AS mcch ON met.cost_center = mcch.cost_center
-                WHERE LOWER(megi.email) = LOWER(?)
-                AND CURRENT_DATE BETWEEN met.start_effective_date
-                    AND COALESCE(met.end_effective_date, '9999-12-31'::date)
-            )
-            SELECT DISTINCT ON (app_id) *
-            FROM combined_apps
-            ORDER BY app_id, seq_nbr DESC;
-        ";
-    }
+            UNION ALL
+
+            SELECT
+                megi."BP",
+                megi.email,
+                megi."name",
+                ma.app_id,
+                ma.app_name,
+                ma.app_url,
+                ma.img_url,
+                ma.environment,
+                met.title_id,
+                met.type,
+                met.seq_nbr,
+                met.start_effective_date,
+                met.end_effective_date,
+                met.remark,
+                mcch.cost_center_name,
+                \'cost_center_mapping\' as source
+            FROM m_employee_general_info AS megi
+            JOIN map_employee_title AS met ON megi."BP" = met."BP"
+            JOIN map_cost_center_application AS mcca ON met.cost_center = mcca.cost_center
+            JOIN m_application AS ma ON ma.app_id = mcca.app_id
+            JOIN map_cost_center_hierarchy AS mcch ON met.cost_center = mcch.cost_center
+            WHERE LOWER(megi.email) = LOWER(?)
+            AND CURRENT_DATE BETWEEN met.start_effective_date
+                AND COALESCE(met.end_effective_date, \'9999-12-31\'::date)
+        )
+        SELECT DISTINCT ON (app_id) *
+        FROM combined_apps
+        ORDER BY app_id, seq_nbr DESC;
+    ';
+}
 
     public static function getRoleUserDotsQuery()
     {

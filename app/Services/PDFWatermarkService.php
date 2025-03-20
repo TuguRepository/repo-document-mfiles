@@ -4,11 +4,13 @@ namespace App\Services;
 
 use TCPDF;
 use setasign\Fpdi\Tcpdf\Fpdi;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class PDFWatermarkService
 {
     /**
-     * Menambahkan watermark "Controlled Copy" pada PDF
+     * Menambahkan watermark "Controlled Copy" pada PDF gambar
      *
      * @param string $pdfContent Konten PDF asli
      * @param bool $isDownload Apakah ini permintaan download
@@ -47,42 +49,31 @@ class PDFWatermarkService
                 // Gunakan halaman yang diimpor sebagai template
                 $pdf->useTemplate($templateId);
 
-                // Atur transparansi
+                // Atur transparansi untuk watermark utama
                 $pdf->SetAlpha(0.3);
 
-                // Atur font
+                // Atur font untuk Controlled Copy
                 $pdf->SetFont('helvetica', 'B', 60);
                 $pdf->SetTextColor(200, 200, 200);
 
                 // Hitung posisi tengah halaman
                 $pageWidth = $pdf->getPageWidth();
                 $pageHeight = $pdf->getPageHeight();
-                $centerX = $pageWidth / 2;
-                $centerY = $pageHeight / 2;
 
-                // Rotasi dan posisikan teks watermark
-                $pdf->StartTransform();
-                $pdf->Rotate(45, $centerX, $centerY);
-                $pdf->Text($centerX - 50, $centerY, 'Controlled Copy');
-                $pdf->StopTransform();
-
-                // Tambahkan info pengguna jika bukan download
-                if (!$isDownload) {
-                    $pdf->SetAlpha(1);
-                    $pdf->SetTextColor(100, 100, 100);
-                    $pdf->SetFont('helvetica', '', 8);
-                    $pdf->Text(10, $pageHeight - 10, "Viewed by: {$username} on " . date('Y-m-d H:i:s'));
+                // Tambahkan banyak teks "Controlled Copy" pada halaman
+                for ($x = 0; $x < $pageWidth; $x += 150) {
+                    for ($y = 0; $y < $pageHeight; $y += 100) {
+                        // Rotasi dan posisikan teks watermark di grid
+                        $pdf->StartTransform();
+                        $pdf->Rotate(45, ($x + 75), ($y + 50));
+                        $pdf->Text($x, $y, 'Controlled Copy');
+                        $pdf->StopTransform();
+                    }
                 }
             }
 
             // Output ke string
             $watermarkedPdf = $pdf->Output('', 'S');
-
-            // Verifikasi bahwa kita mendapatkan PDF yang valid
-            if (substr($watermarkedPdf, 0, 4) !== '%PDF') {
-                \Log::warning('Generated watermarked content may not be a valid PDF');
-                return $pdfContent; // Return original if watermarking fails
-            }
 
             return $watermarkedPdf;
 
@@ -98,106 +89,48 @@ class PDFWatermarkService
     }
 
     /**
-     * Hitung jumlah halaman dalam PDF (cadangan jika FPDI gagal)
-     */
-    private function countPagesInPdf($pdfContent)
-    {
-        // Cara sederhana untuk menghitung jumlah halaman (estimasi)
-        preg_match_all('/\/Page\s*<</', $pdfContent, $matches);
-        $count = count($matches[0]);
-
-        // Jika tidak menemukan halaman, coba cara lain
-        if ($count === 0) {
-            preg_match_all('/\/Type\s*\/Page[^s]/', $pdfContent, $matches);
-            $count = count($matches[0]);
-        }
-
-        // Minimal satu halaman
-        return max(1, $count);
-    }
-
-    /**
-     * Metode alternatif menggunakan qpdf jika tersedia
+     * Menambahkan watermark "Controlled Copy" pada PDF OCR menggunakan qpdf
+     *
+     * @param string $pdfContent Konten PDF asli
+     * @param bool $isDownload Apakah ini permintaan download
+     * @param string $username Username untuk tracking
+     * @return string Konten PDF dengan watermark
      */
     public function processWithQPDF($pdfContent, $isDownload, $username)
     {
-        if (!$this->isQpdfAvailable()) {
-            \Log::warning('qpdf not available, using FPDI method instead');
-            return $this->processWithWatermark($pdfContent, $isDownload, $username);
-        }
-
-        // Buat file temporary untuk input, watermark, dan output
         $tempInputFile = tempnam(sys_get_temp_dir(), 'pdf_in_');
         $tempWatermarkFile = tempnam(sys_get_temp_dir(), 'pdf_wm_');
         $tempOutputFile = tempnam(sys_get_temp_dir(), 'pdf_out_');
 
         try {
-            // Simpan konten PDF asli ke file temporary
             file_put_contents($tempInputFile, $pdfContent);
 
-            // Buat watermark PDF
-            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-            $pdf->SetCreator('PDFWatermarkService');
-            $pdf->SetAuthor('System');
-            $pdf->SetTitle('Watermark Layer');
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetMargins(0, 0, 0, true);
-            $pdf->SetAutoPageBreak(false, 0);
+            $watermarkText = 'Controlled Copy';
+            $this->createWatermarkPDF($tempWatermarkFile, $watermarkText);
 
-            // Tambahkan halaman
-            $pdf->AddPage();
-
-            // Atur transparansi
-            $pdf->SetAlpha(0.3);
-
-            // Atur font
-            $pdf->SetFont('helvetica', 'B', 60);
-            $pdf->SetTextColor(200, 200, 200);
-
-            // Hitung posisi tengah halaman
-            $pageWidth = $pdf->getPageWidth();
-            $pageHeight = $pdf->getPageHeight();
-            $centerX = $pageWidth / 2;
-            $centerY = $pageHeight / 2;
-
-            // Rotasi dan posisikan teks
-            $pdf->StartTransform();
-            $pdf->Rotate(45, $centerX, $centerY);
-            $pdf->Text($centerX - 50, $centerY, 'Controlled Copy');
-            $pdf->StopTransform();
-
-            // Tambahkan info pengguna jika bukan download
-            if (!$isDownload) {
-                $pdf->SetAlpha(1);
-                $pdf->SetTextColor(100, 100, 100);
-                $pdf->SetFont('helvetica', '', 8);
-                $pdf->Text(10, $pageHeight - 10, "Viewed by: {$username} on " . date('Y-m-d H:i:s'));
-            }
-
-            // Output watermark ke file
-            $pdf->Output($tempWatermarkFile, 'F');
-
-            // Gunakan qpdf untuk overlay
-            $command = sprintf(
-                'qpdf --overlay "%s" -- "%s" "%s"',
+            $command = [
+                'qpdf',
+                '--overlay',
                 $tempWatermarkFile,
+                '--',
                 $tempInputFile,
                 $tempOutputFile
-            );
+            ];
 
-            exec($command, $output, $returnVar);
+            $process = new Process($command);
+            $process->run();
 
-            if ($returnVar !== 0) {
-                throw new \Exception('qpdf overlay failed: ' . implode("\n", $output));
+            if (!$process->isSuccessful()) {
+                throw new \Exception('qpdf overlay failed: ' . $process->getErrorOutput());
             }
 
-            return file_get_contents($tempOutputFile);
+            $watermarkedPdf = file_get_contents($tempOutputFile);
+
+            return $watermarkedPdf;
 
         } catch (\Exception $e) {
             \Log::error('QPDF watermarking failed: ' . $e->getMessage());
-            // Fallback to FPDI method
-            return $this->processWithWatermark($pdfContent, $isDownload, $username);
+            return $pdfContent; // Return original if watermarking fails
         } finally {
             // Bersihkan file temporary
             foreach ([$tempInputFile, $tempWatermarkFile, $tempOutputFile] as $file) {
@@ -209,11 +142,40 @@ class PDFWatermarkService
     }
 
     /**
-     * Periksa apakah qpdf tersedia
+     * Membuat file PDF watermark
+     *
+     * @param string $outputFile Path untuk menyimpan file watermark PDF
+     * @param string $text Teks watermark
      */
-    private function isQpdfAvailable()
+    private function createWatermarkPDF($outputFile, $text)
     {
-        exec('which qpdf 2>/dev/null', $output, $returnVar);
-        return $returnVar === 0;
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator('PDFWatermarkService');
+        $pdf->SetAuthor('System');
+        $pdf->SetTitle('Watermark Layer');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetMargins(0, 0, 0, true);
+        $pdf->SetAutoPageBreak(false, 0);
+
+        $pdf->AddPage();
+
+        $pdf->SetAlpha(0.3);
+        $pdf->SetFont('helvetica', 'B', 60);
+        $pdf->SetTextColor(200, 200, 200);
+
+        $pageWidth = $pdf->getPageWidth();
+        $pageHeight = $pdf->getPageHeight();
+
+        for ($x = 0; $x < $pageWidth; $x += 150) {
+            for ($y = 0; $y < $pageHeight; $y += 100) {
+                $pdf->StartTransform();
+                $pdf->Rotate(45, $x + 75, $y + 50);
+                $pdf->Text($x, $y, $text);
+                $pdf->StopTransform();
+            }
+        }
+
+        $pdf->Output($outputFile, 'F');
     }
 }

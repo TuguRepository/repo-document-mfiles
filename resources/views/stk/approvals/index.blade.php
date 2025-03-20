@@ -276,28 +276,27 @@
             border-color: var(--primary);
         }
 
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-        }
+        /* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
 
-        .empty-state i {
-            font-size: 3rem;
-            color: #c9d1d9;
-            margin-bottom: 1.5rem;
-        }
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
 
-        .empty-state h4 {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
+.empty-state h4 {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
 
-        .empty-state p {
-            color: #637381;
-            max-width: 400px;
-            margin: 0 auto;
-        }
+.empty-state p {
+    margin-bottom: 0;
+}
 
         .footer {
             background-color: #1C2255;
@@ -734,7 +733,7 @@
     </div>
 
     <!-- Reject Modal -->
-    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">

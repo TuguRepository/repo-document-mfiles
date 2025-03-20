@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Facades\UserContext;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
+use App\Models\Document; // Tambahkan ini
 
 class DownloadRequestController extends Controller
 {
@@ -112,5 +115,53 @@ class DownloadRequestController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Handles the download request based on the provided token.
+     *
+     * @param string $token The unique token associated with the download request.
+     * @return BinaryFileResponse|Response
+     */
+    public function download(string $token): Response
+    {
+        // Find the DownloadRequest by token
+        $downloadRequest = DownloadRequest::where('token', $token)->firstOrFail();
+
+        // Check if the download request has been approved
+        if (!$downloadRequest->approved_at) {
+            abort(403, 'Download request not approved.'); // Forbidden
+        }
+
+        // Determine the file path and name based on the DownloadRequest
+        $filePath = null;
+        $fileName = null;
+
+        // Option 1: If the DownloadRequest is linked to a Document model
+        if ($downloadRequest->document_id) {
+            $document = Document::findOrFail($downloadRequest->document_id);
+            $filePath = $document->file_path;
+            $fileName = $document->file_name ?? basename($filePath); // Use file_name from Document if available
+        } else {
+            // Option 2: If the file path is stored directly in the DownloadRequest
+            $filePath = $downloadRequest->file_path;
+            $fileName = $downloadRequest->file_name ?? basename($filePath); // Use file_name from DownloadRequest if available
+        }
+
+        // Check if the file path is available
+        if (!$filePath) {
+            abort(500, 'File path not found.'); // Internal Server Error
+        }
+
+        // Check if the file exists in storage
+        if (!Storage::exists($filePath)) {
+            abort(404, 'File not found.'); // Not Found
+        }
+
+        // Increment download count (optional)
+        $downloadRequest->increment('download_count');
+
+        // Generate the streamed download response
+        return Storage::download($filePath, $fileName);
     }
 }

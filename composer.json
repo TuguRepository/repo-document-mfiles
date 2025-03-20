@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "fawno/qpdf": "^0.0.4",
         "firebase/php-jwt": "^6.11",
         "fpdf/fpdf": "^1.86",
         "intervention/image": "^3.11",
@@ -21,7 +22,11 @@
         "livewire/livewire": "^3.0",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
-        "tecnickcom/tcpdf": "^6.8"
+        "setasign/fpdi-tcpdf": "^2.3",
+        "smalot/pdfparser": "^2.11",
+        "symfony/process": "^7.2",
+        "tecnickcom/tcpdf": "^6.8",
+        "tymon/jwt-auth": "^2.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

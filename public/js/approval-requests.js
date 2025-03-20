@@ -121,18 +121,64 @@ function loadRequests(status = 'pending', page = 1, append = false) {
         });
 }
 
-// Process and display received data
-function processRequestsData(data, status, page, append) {
-    // Find the correct container for this status
-    let container = document.getElementById(`${status}-requests-container`);
+// Perbaikan untuk processRequestsData dan loadActivities
 
-    if (!container) {
-        // Fallback container
-        container = document.getElementById(status);
+// 1. Fix untuk function processRequestsData
+function processRequestsData(data, status, page, append) {
+    // Cari container yang benar
+    let containerSelectors = [
+        `#${status}-requests-container`,  // Format utama
+        `#${status}`,                     // Format kedua
+        `.${status}-container`,           // Opsi lain
+        `#tab-${status}`,                 // Mungkin format tab content
+        `#${status}-tab-content`          // Format tab content lain
+    ];
+
+    // Cari container menggunakan multiple selectors
+    let container = null;
+    for (const selector of containerSelectors) {
+        const found = document.querySelector(selector);
+        if (found) {
+            container = found;
+            console.log(`Found container for ${status} using selector: ${selector}`);
+            break;
+        }
     }
 
+    // Jika masih tidak menemukan container, coba buat container baru
     if (!container) {
-        console.error(`No container found for status: ${status}`);
+        console.warn(`No predefined container found for status: ${status}. Creating new container.`);
+
+        // Cari tab content parent
+        const tabContent = document.querySelector('.tab-content') || document.querySelector('#requestTabsContent');
+
+        if (tabContent) {
+            // Buat container baru dalam tab content
+            container = document.createElement('div');
+            container.id = `${status}-requests-container`;
+            container.className = `tab-pane fade ${status === 'pending' ? 'show active' : ''}`;
+            container.setAttribute('role', 'tabpanel');
+            container.setAttribute('aria-labelledby', `${status}-tab`);
+
+            // Tambahkan ke tab content
+            tabContent.appendChild(container);
+            console.log(`Created new container for ${status} with ID: ${container.id}`);
+        } else {
+            // Fallback: tambahkan ke body atau element tertentu
+            const fallbackParent = document.querySelector('.main-content') || document.querySelector('main') || document.body;
+
+            container = document.createElement('div');
+            container.id = `${status}-requests-container`;
+            container.className = `requests-container ${status}-container`;
+
+            fallbackParent.appendChild(container);
+            console.log(`Created fallback container for ${status} with ID: ${container.id}`);
+        }
+    }
+
+    // Gunakan container yang sudah ditemukan/dibuat
+    if (!container) {
+        console.error(`Still couldn't find or create container for status: ${status}`);
         return;
     }
 
@@ -252,9 +298,9 @@ function processRequestsData(data, status, page, append) {
     }
 }
 
-// Load activities
+// 2. Fix untuk function loadActivities
 function loadActivities() {
-    fetch('/api/activities')
+    makeAuthenticatedRequest('/api/activities', 'GET')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -262,10 +308,79 @@ function loadActivities() {
             return response.json();
         })
         .then(data => {
-            const activityFeed = document.getElementById('activity-feed');
+            // Cari atau buat container activity feed
+            let activityFeed = document.getElementById('activity-feed');
+
             if (!activityFeed) {
-                console.warn('Activity feed container not found');
-                return;
+                console.warn('Activity feed container not found, searching for alternatives...');
+
+                // Coba cari container dengan kelas yang relevan
+                activityFeed = document.querySelector('.activity-feed') ||
+                               document.querySelector('.activities-container') ||
+                               document.querySelector('.recent-activities');
+
+                // Jika masih tidak ditemukan, buat container baru
+                if (!activityFeed) {
+                    console.warn('Creating new activity feed container');
+
+                    // Cari parent container yang tepat, seperti sidebar atau panel
+                    const sidebar = document.querySelector('.sidebar') ||
+                                   document.querySelector('.side-panel') ||
+                                   document.querySelector('.activities-panel');
+
+                    // Jika sidebar ada, tambahkan di sana, jika tidak buat di tempat yang sesuai
+                    if (sidebar) {
+                        activityFeed = document.createElement('div');
+                        activityFeed.id = 'activity-feed';
+                        activityFeed.className = 'activity-feed';
+
+                        // Tambahkan judul jika belum ada
+                        if (!sidebar.querySelector('h5.activities-title')) {
+                            const title = document.createElement('h5');
+                            title.className = 'activities-title';
+                            title.textContent = 'Aktivitas Terbaru';
+                            sidebar.appendChild(title);
+                        }
+
+                        sidebar.appendChild(activityFeed);
+                    } else {
+                        // Fallback: cari main-content atau elemen utama lain
+                        const mainContent = document.querySelector('.main-content') ||
+                                          document.querySelector('main') ||
+                                          document.querySelector('.content-wrapper');
+
+                        if (mainContent) {
+                            // Buat panel aktivitas
+                            const activityPanel = document.createElement('div');
+                            activityPanel.className = 'activities-panel card mt-4';
+
+                            // Buat header
+                            const header = document.createElement('div');
+                            header.className = 'card-header';
+                            header.innerHTML = '<h5 class="mb-0">Aktivitas Terbaru</h5>';
+
+                            // Buat body
+                            const body = document.createElement('div');
+                            body.className = 'card-body p-0';
+
+                            // Buat feed
+                            activityFeed = document.createElement('div');
+                            activityFeed.id = 'activity-feed';
+                            activityFeed.className = 'activity-feed';
+
+                            // Gabungkan semua
+                            body.appendChild(activityFeed);
+                            activityPanel.appendChild(header);
+                            activityPanel.appendChild(body);
+
+                            // Tambahkan ke mainContent
+                            mainContent.appendChild(activityPanel);
+                        } else {
+                            console.error('Could not find suitable container for activity feed');
+                            return;
+                        }
+                    }
+                }
             }
 
             if (!data || data.length === 0) {
@@ -1084,7 +1199,523 @@ function submitNewRequest() {
     });
 }
 
-// Prepare modal for rejection
+// Tambahkan kode berikut di akhir file approval-requests.js
+
+/**
+ * Fungsi untuk mendapatkan token JWT dari cookie
+ * @returns {string|null} JWT token atau null jika tidak ditemukan
+ */
+function getJwtToken() {
+    return getCookie('refresh_token');
+}
+
+/**
+ * Fungsi yang lebih robust untuk mendapatkan cookie berdasarkan nama
+ * @param {string} name Nama cookie
+ * @returns {string|null} Nilai cookie atau null jika tidak ditemukan
+ */
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+/**
+ * Fungsi untuk membuat request dengan token JWT
+ * @param {string} url URL endpoint API
+ * @param {string} method HTTP method (GET, POST, etc)
+ * @param {FormData|Object} data Data yang akan dikirim
+ * @returns {Promise} Promise dari fetch
+ */
+function makeAuthenticatedRequest(url, method, data) {
+    // Dapatkan token JWT dari cookie
+    const token = getJwtToken();
+
+    // Buat options untuk fetch
+    const options = {
+        method: method,
+        credentials: 'same-origin', // Kirim cookies
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    };
+
+    // Tambahkan data jika ada
+    if (data) {
+        if (data instanceof FormData) {
+            options.body = data;
+        } else {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(data);
+        }
+    }
+
+    // Tambahkan Authorization header jika token ada
+    if (token) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Tambahkan CSRF token jika ada
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+        options.headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+    }
+
+    // Buat request
+    return fetch(url, options)
+        .then(response => {
+            // Log status response untuk debugging
+            console.log('Response status:', response.status);
+
+            // Jika unauthorized dan kita punya token, redirect ke login SSO
+            if (response.status === 401 && token) {
+                // Redirect ke SSO login
+                const currentUrl = window.location.href;
+                const encodedUrl = btoa(currentUrl);
+                const loginUrl = (window.appConfig && window.appConfig.ssoUrl)
+                    ? window.appConfig.ssoUrl + '/login'
+                    : '/login';
+                const redirectUrl = `${loginUrl}?redirect=${encodedUrl}`;
+
+                // Tampilkan pesan
+                showToast('Sesi Berakhir', 'Sesi Anda telah berakhir. Akan dialihkan ke halaman login.', 'warning');
+
+                // Redirect setelah delay singkat
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 2000);
+
+                throw new Error('Session expired');
+            }
+
+            return response;
+        });
+}
+
+// Perbaikan fungsi rejectRequest untuk menangani case khusus 500 tapi sukses update database
+function rejectRequest() {
+    const requestIdField = document.getElementById('reject-request-id');
+    if (!requestIdField) {
+        console.error('Reject request ID field not found');
+        showToast('Error', 'Field untuk ID permintaan tidak ditemukan', 'error');
+        return;
+    }
+
+    const requestId = requestIdField.value;
+    const rejectionReason = document.getElementById('rejectionReason')?.value || '';
+    const note = document.getElementById('rejectionNote')?.value || '';
+    const suggestAlternative = document.getElementById('suggestAlternativeCheck')?.checked || false;
+    const alternativeDoc = suggestAlternative ? document.getElementById('alternativeDoc')?.value || null : null;
+
+    // Validation
+    if (!requestId || !rejectionReason) {
+        showToast('Validasi Gagal', 'Mohon isi alasan penolakan yang wajib diisi.', 'error');
+        return;
+    }
+
+    // Show loading state on button
+    const rejectBtn = document.querySelector('#rejectRequestBtn');
+    const originalText = rejectBtn.textContent;
+    rejectBtn.disabled = true;
+    rejectBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
+
+    // Prepare data
+    const formData = new FormData();
+    formData.append('request_id', requestId);
+    formData.append('rejection_reason', rejectionReason);
+
+    // Only append non-empty note
+    if (note) {
+        formData.append('note', note);
+    }
+
+    // Only append alternative doc if option is checked and value exists
+    if (suggestAlternative && alternativeDoc) {
+        formData.append('alternative_doc', alternativeDoc);
+    }
+
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+        formData.append('_token', csrfToken.getAttribute('content'));
+    }
+
+    // Debug: Log request payload
+    console.log('Rejecting request:', requestId);
+    console.log('Rejection reason:', rejectionReason);
+
+    // Use the authenticated request function
+    makeAuthenticatedRequest('/api/reject', 'POST', formData)
+        .then(response => {
+            // Log response status
+            console.log('Response status:', response.status);
+
+            // Spesial case: Jika status 500 tapi data mungkin sudah tersimpan di database,
+            // kita anggap operasi berhasil dan refresh data untuk mengkonfirmasi
+            if (response.status === 500) {
+                // Refresh data untuk melihat jika status berubah di database
+                loadCounts();
+                const pendingItems = document.querySelectorAll(`#pending-requests-container .request-item[data-id="${requestId}"]`);
+
+                if (pendingItems.length === 0) {
+                    // Jika item tidak lagi ada di pending, kemungkinan sudah berhasil diupdate
+                    // meskipun API mengembalikan error 500
+                    loadRequests('pending', currentPage);
+                    loadRequests('rejected', 1);
+                    loadActivities();
+
+                    // Show notification with warning
+                    showToast('Permintaan Mungkin Ditolak', 'Server mengembalikan error, tapi permintaan mungkin sudah diproses. Data telah direfresh.', 'warning');
+
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
+                    if (modal) modal.hide();
+
+                    // Reset button state
+                    rejectBtn.disabled = false;
+                    rejectBtn.innerHTML = originalText;
+                    return;
+                }
+            }
+
+            if (!response.ok) {
+                return response.text().then(text => {
+                    try {
+                        const json = JSON.parse(text);
+                        throw new Error(json.message || `Server error: ${response.status}`);
+                    } catch (e) {
+                        throw new Error(text || `Server error: ${response.status}`);
+                    }
+                });
+            }
+
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Refresh data
+                loadCounts();
+                loadRequests('pending', currentPage);
+                loadRequests('rejected', 1);
+                loadActivities();
+
+                // Show notification
+                showToast('Permintaan Ditolak', 'Permintaan telah ditolak dan notifikasi telah dikirim ke pemohon.', 'error');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
+                if (modal) modal.hide();
+            } else {
+                showToast('Error', data.message || 'Terjadi kesalahan saat menolak permintaan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error rejecting request:', error);
+
+            // Don't show error if it's due to session expiry (already handled)
+            if (error.message !== 'Session expired') {
+                // Display more helpful error message
+                let errorMessage = 'Terjadi kesalahan saat menghubungi server';
+                if (error.message) {
+                    errorMessage += `: ${error.message}`;
+                }
+
+                // Special handling for server error that might have succeeded
+                if (error.message && error.message.includes('Terjadi kesalahan saat menolak permintaan')) {
+                    // Refresh data to check if it was actually successful
+                    loadCounts();
+                    loadRequests('pending', currentPage);
+                    loadRequests('rejected', 1);
+                    loadActivities();
+
+                    errorMessage += ". Data telah direfresh untuk mengecek status permintaan.";
+                }
+
+                showToast('Error', errorMessage, 'error');
+            }
+        })
+        .finally(() => {
+            // Always reset button state
+            rejectBtn.disabled = false;
+            rejectBtn.innerHTML = originalText;
+        });
+}
+
+// Perbaiki juga fungsi approveRequest menggunakan makeAuthenticatedRequest
+function approveRequest() {
+    const requestIdField = document.getElementById('approve-request-id');
+    if (!requestIdField) {
+        console.error('Request ID field not found');
+        return;
+    }
+
+    const requestId = requestIdField.value;
+    const note = document.getElementById('approvalNote')?.value || '';
+    const sendEmail = document.getElementById('sendEmailCheck')?.checked || false;
+    const sendFile = document.getElementById('sendFileCheck')?.checked || false;
+    const limitTime = document.getElementById('limitTimeCheck')?.checked || false;
+
+    if (!requestId) {
+        console.error('No request ID found');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('request_id', requestId);
+    formData.append('note', note);
+    formData.append('send_email', sendEmail ? '1' : '0');
+    formData.append('send_file', sendFile ? '1' : '0');
+    formData.append('limit_time', limitTime ? '1' : '0');
+
+    // Show loading state on button
+    const approveBtn = document.querySelector('#approveModal .btn-success');
+    const originalText = approveBtn.textContent;
+    approveBtn.disabled = true;
+    approveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
+
+    // Use the authenticated request function
+    makeAuthenticatedRequest('/api/approve', 'POST', formData)
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    try {
+                        const json = JSON.parse(text);
+                        throw new Error(json.message || `Server error: ${response.status}`);
+                    } catch (e) {
+                        throw new Error(text || `Server error: ${response.status}`);
+                    }
+                });
+            }
+
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Refresh data
+                loadCounts();
+                loadRequests('pending', currentPage);
+                loadRequests('approved', 1);
+                loadActivities();
+
+                // Show notification
+                showToast('Permintaan Disetujui', 'Permintaan telah berhasil disetujui' +
+                    (sendEmail ? ' dan notifikasi telah dikirim ke pemohon' : '') +
+                    (sendEmail && sendFile ? ' beserta file yang diminta' : '') + '.', 'success');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('approveModal'));
+                if (modal) modal.hide();
+            } else {
+                showToast('Error', data.message || 'Terjadi kesalahan saat menyetujui permintaan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error approving request:', error);
+
+            // Don't show error if it's due to session expiry (already handled)
+            if (error.message !== 'Session expired') {
+                // Display more helpful error message
+                let errorMessage = 'Terjadi kesalahan saat menghubungi server';
+                if (error.message) {
+                    errorMessage += `: ${error.message}`;
+                }
+
+                showToast('Error', errorMessage, 'error');
+            }
+        })
+        .finally(() => {
+            // Always reset button state
+            approveBtn.disabled = false;
+            approveBtn.textContent = originalText;
+        });
+}
+
+// Update loadCounts untuk menggunakan makeAuthenticatedRequest
+function loadCounts() {
+    makeAuthenticatedRequest('/api/counts', 'GET')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update all counter elements
+            document.querySelectorAll('.pending-count').forEach(el => {
+                el.textContent = data.pending.toString();
+            });
+
+            document.querySelectorAll('.approved-count').forEach(el => {
+                el.textContent = data.approved.toString();
+            });
+
+            document.querySelectorAll('.rejected-count').forEach(el => {
+                el.textContent = data.rejected.toString();
+            });
+
+            // Update notification badge
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                badge.setAttribute('data-count', data.pending.toString());
+            }
+
+            // Toggle visibility of pagination/load more buttons
+            const pendingPagination = document.getElementById('pending-pagination');
+            if (pendingPagination) {
+                pendingPagination.style.display = data.pending > itemsPerPage ? 'block' : 'none';
+            }
+
+            const approvedLoadMore = document.getElementById('approved-load-more');
+            if (approvedLoadMore) {
+                approvedLoadMore.style.display = data.approved > itemsPerPage ? 'block' : 'none';
+            }
+
+            const rejectedLoadMore = document.getElementById('rejected-load-more');
+            if (rejectedLoadMore) {
+                rejectedLoadMore.style.display = data.rejected > itemsPerPage ? 'block' : 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading counts:', error);
+        });
+}
+
+// Update loadRequests untuk menggunakan makeAuthenticatedRequest
+function loadRequests(status = 'pending', page = 1, append = false) {
+    // Get filter values
+    const searchTerm = document.getElementById('search-input')?.value || '';
+    const periodFilter = document.getElementById('period-filter')?.value || 'all';
+
+    // Get selected categories
+    const selectedCategories = Array.from(document.querySelectorAll('.filter-category:checked'))
+        .map(el => el.value);
+
+    // Build query params
+    const params = new URLSearchParams({
+        status: status,
+        page: page,
+        per_page: itemsPerPage
+    });
+
+    if (searchTerm) {
+        params.append('search', searchTerm);
+    }
+
+    if (periodFilter !== 'all') {
+        params.append('period', periodFilter);
+    }
+
+    if (selectedCategories.length > 0) {
+        selectedCategories.forEach(category => {
+            params.append('categories[]', category);
+        });
+    }
+
+    // Make API request
+    makeAuthenticatedRequest(`/api/requests?${params.toString()}`, 'GET')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            processRequestsData(data, status, page, append);
+        })
+        .catch(error => {
+            console.error(`Error loading ${status} requests:`, error);
+
+            // Try to find a container to show the error in
+            const containerId = `${status}-requests-container`;
+            let container = document.getElementById(containerId) || document.getElementById(status);
+
+            if (container) {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error: ${error.message || 'Failed to load requests'}
+                    </div>
+                `;
+            } else {
+                // If we can't find a container, show a popup
+                showToast('Error', `Failed to load ${status} requests: ${error.message}`, 'error');
+            }
+        });
+}
+
+// Update loadActivities untuk menggunakan makeAuthenticatedRequest
+function loadActivities() {
+    makeAuthenticatedRequest('/api/activities', 'GET')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const activityFeed = document.getElementById('activity-feed');
+            if (!activityFeed) {
+                console.warn('Activity feed container not found');
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                activityFeed.innerHTML = `
+                    <div class="empty-state p-3 text-center">
+                        <p class="text-muted mb-0">Belum ada aktivitas terbaru</p>
+                    </div>
+                `;
+                return;
+            }
+
+            activityFeed.innerHTML = '';
+
+            data.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+
+                let iconClass, title;
+
+                if (activity.type === 'approve') {
+                    iconClass = 'approve';
+                    title = `Anda menyetujui permintaan download dari ${activity.download_request?.user_name || 'pengguna'}`;
+                } else if (activity.type === 'reject') {
+                    iconClass = 'reject';
+                    title = `Anda menolak permintaan download dari ${activity.download_request?.user_name || 'pengguna'}`;
+                } else {
+                    iconClass = 'request';
+                    title = `Permintaan baru dari ${activity.download_request?.user_name || 'pengguna'}`;
+                }
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon ${iconClass}">
+                        <i class="fas fa-${activity.type === 'approve' ? 'check' : (activity.type === 'reject' ? 'times' : 'download')}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${title}</div>
+                        <div class="activity-time">${formatDate(activity.created_at)}</div>
+                    </div>
+                `;
+
+                activityFeed.appendChild(activityItem);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading activities:', error);
+
+            const activityFeed = document.getElementById('activity-feed');
+            if (activityFeed) {
+                activityFeed.innerHTML = `
+                    <div class="alert alert-danger p-3">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error: ${error.message || 'Failed to load activities'}
+                    </div>
+                `;
+            }
+        });
+}
+// Fungsi untuk menyiapkan modal reject
 function prepareReject(requestId) {
     const rejectIdField = document.getElementById('reject-request-id');
     if (rejectIdField) {
@@ -1115,70 +1746,63 @@ function prepareReject(requestId) {
     if (alternativeField) {
         alternativeField.value = '';
     }
+
+    // Fix Bootstrap modal focus management
+    const rejectModal = document.getElementById('rejectModal');
+    if (rejectModal) {
+        // Remove aria-hidden if it's been incorrectly set
+        rejectModal.addEventListener('shown.bs.modal', function () {
+            if (rejectModal.getAttribute('aria-hidden') === 'true') {
+                rejectModal.setAttribute('aria-hidden', 'false');
+            }
+
+            // Focus pada field alasan
+            if (reasonField) {
+                setTimeout(() => reasonField.focus(), 150);
+            }
+        }, { once: true });
+    }
 }
 
-// Reject a request
-function rejectRequest() {
-    const requestIdField = document.getElementById('reject-request-id');
-    if (!requestIdField) {
-        console.error('Reject request ID field not found');
-        return;
+// Fungsi untuk menyiapkan modal approve
+function prepareApprove(requestId) {
+    const idField = document.getElementById('approve-request-id');
+    if (idField) {
+        idField.value = requestId;
     }
 
-    const requestId = requestIdField.value;
-    const rejectionReason = document.getElementById('rejectionReason')?.value || '';
-    const note = document.getElementById('rejectionNote')?.value || '';
-    const suggestAlternative = document.getElementById('suggestAlternativeCheck')?.checked || false;
-    const alternativeDoc = suggestAlternative ? document.getElementById('alternativeDoc')?.value || null : null;
-
-    // Validation
-    if (!requestId || !rejectionReason || !note) {
-        alert('Mohon isi semua field yang wajib diisi.');
-        return;
+    const noteField = document.getElementById('approvalNote');
+    if (noteField) {
+        noteField.value = '';
+        // Defer focus until modal is fully shown
+        setTimeout(() => noteField.focus(), 150);
     }
 
-    const formData = new FormData();
-    formData.append('request_id', requestId);
-    formData.append('rejection_reason', rejectionReason);
-    formData.append('note', note);
-
-    if (suggestAlternative && alternativeDoc) {
-        formData.append('alternative_doc', alternativeDoc);
+    const emailCheck = document.getElementById('sendEmailCheck');
+    if (emailCheck) {
+        emailCheck.checked = true;
     }
 
-    // Tambahkan CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
-        formData.append('_token', csrfToken.getAttribute('content'));
+    const sendFileCheck = document.getElementById('sendFileCheck');
+    if (sendFileCheck) {
+        sendFileCheck.checked = false;
     }
 
-    fetch('/api/reject', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Refresh data
-            loadCounts();
-            loadRequests('pending', currentPage);
-            loadRequests('rejected', 1);
-            loadActivities();
+    const limitTimeCheck = document.getElementById('limitTimeCheck');
+    if (limitTimeCheck) {
+        limitTimeCheck.checked = false;
+    }
 
-            // Show notification
-            showToast('Permintaan Ditolak', 'Permintaan telah ditolak dan notifikasi telah dikirim ke pemohon.', 'error');
-        } else {
-            showToast('Error', data.message || 'Terjadi kesalahan saat menolak permintaan', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error rejecting request:', error);
-        showToast('Error', 'Terjadi kesalahan saat menghubungi server', 'error');
-    });
-
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
-    if (modal) modal.hide();
+    // Fix Bootstrap modal focus management
+    const approveModal = document.getElementById('approveModal');
+    if (approveModal) {
+        // Remove aria-hidden if it's been incorrectly set
+        approveModal.addEventListener('shown.bs.modal', function () {
+            if (approveModal.getAttribute('aria-hidden') === 'true') {
+                approveModal.setAttribute('aria-hidden', 'false');
+            }
+        }, { once: true });
+    }
 }
 
 // Make functions available globally for onclick handlers
@@ -1190,3 +1814,4 @@ window.approveRequest = approveRequest;
 window.rejectRequest = rejectRequest;
 window.submitNewRequest = submitNewRequest;
 window.updateDebugInfo = updateDebugInfo;
+window.applyFilters = applyFilters;

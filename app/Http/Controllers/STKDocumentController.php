@@ -781,133 +781,93 @@ public function getPreview(Request $request, $objectId, $version = 'latest')
 //    Masih ga ada watermark
 
 
-
 /**
- * Fungsi untuk menambahkan watermark ke PDF
+ * Fungsi untuk menambahkan watermark ke PDF tanpa menambah halaman kosong
  *
  * @param string $pdfContent Konten PDF asli
  * @param bool $isDownload Apakah ini permintaan download
  * @param string $username Username untuk tracking
  * @return string Konten PDF dengan watermark
  */
-    private function addWatermarkToPdf($pdfContent, $isDownload = false, $username = 'User')
-    {
-        // Perlu menginstall TCPDF: composer require tecnickcom/tcpdf
-
-        // Buat file temporary untuk input
+private function addWatermarkToPdf($pdfContent, $isDownload = false, $username = 'User')
+{
+    // Buat file temporary untuk input
     $tempInputFile = tempnam(sys_get_temp_dir(), 'pdf_in_');
-    file_put_contents($tempInputFile, $originalContent);
+    file_put_contents($tempInputFile, $pdfContent);
 
-        try {
-            // Simpan PDF asli ke file temporary
-            file_put_contents($tempInputFile, $pdfContent);
+    try {
+        // Gunakan FPDI untuk mengimpor PDF asli
+        $pdf = new Fpdi();
+        $pdf->SetCreator('PDFWatermarkService');
+        $pdf->SetAuthor('System');
+        $pdf->SetTitle('Watermarked Document');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
 
-            // Coba gunakan TCPDF langsung untuk membuat watermark
-            $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-            $pdf->SetCreator('PDFWatermarkService');
-            $pdf->SetAuthor('System');
-            $pdf->SetTitle('Copy');
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetMargins(0, 0, 0, true);
-            $pdf->SetAutoPageBreak(false, 0);
+        // Hitung jumlah halaman dari file asli
+        $pageCount = $pdf->setSourceFile($tempInputFile);
 
-            // Tambahkan halaman
-            $pdf->AddPage();
+        // Untuk setiap halaman, tambahkan watermark di atas konten asli
+        for ($i = 1; $i <= $pageCount; $i++) {
+            // Import halaman dari PDF asli
+            $templateId = $pdf->importPage($i);
+            $size = $pdf->getTemplateSize($templateId);
 
-            // Atur transparansi
+            // Tambahkan halaman dengan ukuran yang sama dengan halaman asli
+            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+
+            // Gunakan halaman yang diimpor sebagai template
+            $pdf->useTemplate($templateId);
+
+            // Atur transparansi untuk watermark utama
             $pdf->SetAlpha(0.3);
 
-            // Atur font
+            // Atur font untuk Controlled Copy
             $pdf->SetFont('helvetica', 'B', 60);
             $pdf->SetTextColor(200, 200, 200);
 
             // Hitung posisi tengah halaman
             $pageWidth = $pdf->getPageWidth();
             $pageHeight = $pdf->getPageHeight();
-            $centerX = $pageWidth / 2;
-            $centerY = $pageHeight / 2;
 
-            // Rotasi dan posisikan teks
-            $pdf->StartTransform();
-            $pdf->Rotate(45, $centerX, $centerY);
-            $pdf->Text($centerX - 50, $centerY, 'Controlled Copy');
-            $pdf->StopTransform();
+            // Tambahkan banyak teks "Controlled Copy" pada halaman dalam pola grid
+            for ($x = 0; $x < $pageWidth; $x += 150) {
+                for ($y = 0; $y < $pageHeight; $y += 100) {
+                    // Rotasi dan posisikan teks watermark di grid
+                    $pdf->StartTransform();
+                    $pdf->Rotate(45, ($x + 75), ($y + 50));
+                    $pdf->Text($x, $y, 'Controlled Copy');
+                    $pdf->StopTransform();
+                }
+            }
 
-            // Tambahkan info pengguna jika bukan download
+            // Tambahkan info pengguna jika bukan download (tidak menambah halaman baru)
             if (!$isDownload) {
+                // Kembalikan transparansi ke normal untuk teks detail pengguna
                 $pdf->SetAlpha(1);
                 $pdf->SetTextColor(100, 100, 100);
                 $pdf->SetFont('helvetica', '', 8);
-                $pdf->Text(10, $pageHeight - 10, "Viewed by: {$username} on " . date('Y-m-d H:i:s'));
-            }
-
-            // Output watermark ke file
-            $pdf->Output($tempOutputFile, 'F');
-            $watermarkContent = file_get_contents($tempOutputFile);
-
-            // Untuk implementasi awal, kita return watermark saja
-            return $watermarkContent;
-
-        } catch (\Exception $e) {
-            // Log error
-            \Log::error('PDF watermarking failed: ' . $e->getMessage());
-
-            // Jika gagal, kembalikan PDF asli
-            return $pdfContent;
-        } finally {
-            // Bersihkan file temporary
-            if (file_exists($tempInputFile)) {
-                @unlink($tempInputFile);
-            }
-            if (file_exists($tempOutputFile)) {
-                @unlink($tempOutputFile);
+                // Tambahkan teks di bagian bawah halaman (tidak menambah halaman baru)
+                $footerText = "Viewed by: {$username} on " . date('Y-m-d H:i:s');
+                $footerX = 10;
+                $footerY = ($pageHeight - 10);
+                $pdf->Text($footerX, $footerY, $footerText);
             }
         }
+
+        // Output ke string
+        return $pdf->Output('', 'S');
+
+    } catch (\Exception $e) {
+        \Log::error('PDF watermarking failed: ' . $e->getMessage());
+        return $pdfContent; // Return original if watermarking fails
+    } finally {
+        // Bersihkan file temporary
+        if (file_exists($tempInputFile)) {
+            @unlink($tempInputFile);
+        }
     }
-
-    // if ($contentType === 'application/pdf') {
-    //     // Get the username
-    //     $username = $request->session()->get('username', 'User');
-
-    //     // Check if this is a download request
-    //     $isDownload = $request->input('download', false) ||
-    //                   $request->route()->getName() === 'stk.documents.content' ||
-    //                   strpos($request->url(), 'download') !== false;
-
-    //     try {
-    //         // Apply watermark
-    //         $originalContent = $successfulResponse->body();
-    //         $fileContent = $this->addWatermarkToPdf($originalContent, $isDownload, $username);
-
-    //         Log::info('Watermark created successfully');
-
-    //         // Set content disposition based on request type
-    //         $contentDisposition = $isDownload ? 'attachment' : 'inline';
-
-    //         // Return the watermarked PDF
-    //         return response($fileContent, 200)
-    //             ->header('Content-Type', $contentType)
-    //             ->header('Content-Disposition', $contentDisposition . '; filename="' . $fileName . '"')
-    //             ->header('Content-Length', strlen($fileContent));
-    //     } catch (\Exception $e) {
-    //         // Log watermarking error
-    //         Log::error('PDF watermarking failed', [
-    //             'error' => $e->getMessage(),
-    //             'trace' => $e->getTraceAsString()
-    //         ]);
-
-    //         // Fallback to original PDF if watermarking fails
-    //         Log::info('Returning original PDF without watermark');
-    //         return response($successfulResponse->body(), 200)
-    //             ->header('Content-Type', $contentType)
-    //             ->header('Content-Disposition', 'inline; filename="' . $fileName . '"')
-    //             ->header('Content-Length', $contentLength);
-    //     }
-    // }
-
-
-
+}
 
 /**
  * Handle document download request
@@ -976,27 +936,6 @@ public function downloadDocument(Request $request, $objectId, $version = 'latest
         ], 500);
     }
 }
-
-// /**
-//  * Modifikasi pada fungsi getFileContent untuk memeriksa parameter download
-//  * Tambahkan kode ini di bagian yang menangani PDF di fungsi getFileContent
-//  */
-// // Di dalam blok if ($contentType === 'application/pdf') {
-// // Periksa apakah ini permintaan download
-// $isDownload = $request->input('download', false);
-
-// // Set header Content-Disposition yang sesuai
-// if ($isDownload) {
-//     $contentDisposition = 'attachment; filename="' . $fileName . '"';
-// } else {
-//     $contentDisposition = 'inline; filename="' . $fileName . '"';
-// }
-
-// // Dan gunakan $contentDisposition saat return response
-// return response($fileContent, 200)
-//     ->header('Content-Type', $contentType)
-//     ->header('Content-Disposition', $contentDisposition)
-//     ->header('Content-Length', $contentLength);
 
    /**
  * Get STK documents summary with improved document type categorization
@@ -2038,4 +1977,381 @@ public function getDocumentInfo(Request $request, $objectId, $version = 'latest'
 
 
 
+/**
+ * Mengambil metadata dokumen untuk kartu dokumen yang bisa dibuka/tutup
+ *
+ * @param Request $request
+ * @param int $objectId ID Dokumen
+ * @param string $version Versi Dokumen (default: latest)
+ * @return \Illuminate\Http\JsonResponse
+ */
+public function getDocumentMetadata(Request $request, $objectId, $version = 'latest')
+{
+    // Increase the overall script execution timeout
+    set_time_limit(60); // Set to 60 seconds instead of the default 30
+    try {
+        Log::info('Mengambil metadata dokumen - mulai', [
+            'objectId' => $objectId,
+            'version' => $version,
+            'user_agent' => $request->header('User-Agent')
+        ]);
+
+        // Dapatkan token autentikasi
+        $authToken = $this->getAuthToken();
+
+        if (!$authToken) {
+            Log::error('Autentikasi M-Files gagal - tidak ada token yang dikembalikan');
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal autentikasi dengan M-Files'
+            ], 401);
+        }
+
+        Log::info('Autentikasi berhasil, token didapatkan');
+
+        // Ambil objek dari M-Files
+        $objectUrl = "{$this->mfilesUrl}/objects/0/{$objectId}/{$version}";
+
+        Log::info('Mengambil data objek', ['url' => $objectUrl]);
+
+        $objectResponse = Http::withHeaders([
+            'Accept' => 'application/json',
+            'X-Authentication' => $authToken,
+        ])->get($objectUrl);
+
+        Log::info('Respons objek diterima', [
+            'status' => $objectResponse->status(),
+            'content_type' => $objectResponse->header('Content-Type'),
+            'length' => strlen($objectResponse->body())
+        ]);
+
+        if (!$objectResponse->successful()) {
+            Log::error('Pengambilan objek M-Files gagal', [
+                'status' => $objectResponse->status(),
+                'response' => substr($objectResponse->body(), 0, 500)
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data objek: ' . ($objectResponse->json()['Message'] ?? 'Kesalahan tidak diketahui')
+            ], $objectResponse->status());
+        }
+
+        $objectData = $objectResponse->json();
+
+        Log::info('Data objek berhasil di-parse', [
+            'has_properties' => isset($objectData['Properties']),
+            'properties_count' => isset($objectData['Properties']) ? count($objectData['Properties']) : 0,
+            'title' => $objectData['Title'] ?? 'Tidak ada judul'
+        ]);
+
+        // Daftar semua PropertyDef yang mungkin ada untuk dokumen STK
+        $requiredPropertyDefs = [
+            1853 => true, 1854 => true, 1855 => true, 1870 => true,
+            1856 => false, 1857 => false, 1859 => false, 1861 => false,
+            1862 => false, 1863 => false, 1864 => false, 1904 => false,
+            1905 => false, 1903 => false, 1777 => false, 20 => true,
+            25 => true, 21 => true, 23 => true, 24 => true,
+            89 => true, 22 => true, 101 => false, 30 => true,
+            31 => true, 32 => true
+        ];
+
+        // PENTING: Inisialisasi variabel metadata di sini
+        $metadata = [];
+
+        // Dapatkan kelas dokumen untuk memahami definisi properti
+        $classId = 153; // ID kelas STK
+        $classUrl = "{$this->mfilesUrl}/structure/classes/{$classId}";
+
+        Log::info('Mengambil data kelas', ['url' => $classUrl]);
+
+        $classResponse = Http::withHeaders([
+            'Accept' => 'application/json',
+            'X-Authentication' => $authToken,
+        ])->get($classUrl);
+
+        if (!$classResponse->successful()) {
+            Log::warning('Pengambilan kelas M-Files gagal, melanjutkan dengan metadata terbatas', [
+                'status' => $classResponse->status()
+            ]);
+            // Lanjutkan tanpa info kelas
+        }
+
+        $classInfo = $classResponse->successful() ? $classResponse->json() : null;
+
+        // Proses definisi properti jika tersedia
+        $propertyDefs = [];
+        if ($classInfo && isset($classInfo['AssociatedPropertyDefs'])) {
+            foreach ($classInfo['AssociatedPropertyDefs'] as $propDef) {
+                // Dapatkan definisi properti dari M-Files
+                $propDefId = $propDef['PropertyDef'];
+                $propRequired = $propDef['Required'] ?? false;
+
+                // Ambil detail definisi properti
+                $propDefUrl = "{$this->mfilesUrl}/structure/properties/{$propDefId}";
+                $propDefResponse = Http::withHeaders([
+                    'Accept' => 'application/json',
+                    'X-Authentication' => $authToken,
+                ])->get($propDefUrl);
+
+                if ($propDefResponse->successful()) {
+                    $propDefData = $propDefResponse->json();
+                    $propertyDefs[$propDefId] = [
+                        'id' => $propDefId,
+                        'name' => $propDefData['Name'] ?? "Properti {$propDefId}",
+                        'data_type' => $propDefData['DataType'] ?? 0,
+                        'required' => $propRequired,
+                        'display_order' => array_search($propDef, $classInfo['AssociatedPropertyDefs'])
+                    ];
+                }
+            }
+        } else {
+            // Jika tidak bisa mendapatkan definisi properti dari kelas, gunakan daftar properti yang diberikan
+            foreach ($requiredPropertyDefs as $propId => $isRequired) {
+                // Ambil detail definisi properti
+                $propDefUrl = "{$this->mfilesUrl}/structure/properties/{$propId}";
+
+                try {
+                    $propDefResponse = Http::withHeaders([
+                        'Accept' => 'application/json',
+                        'X-Authentication' => $authToken,
+                    ])->get($propDefUrl);
+
+                    if ($propDefResponse->successful()) {
+                        $propDefData = $propDefResponse->json();
+                        $propertyDefs[$propId] = [
+                            'id' => $propId,
+                            'name' => $propDefData['Name'] ?? "Properti {$propId}",
+                            'data_type' => $propDefData['DataType'] ?? 0,
+                            'required' => $isRequired,
+                            'display_order' => array_search($propId, array_keys($requiredPropertyDefs))
+                        ];
+                    } else {
+                        Log::warning("Gagal mendapatkan definisi properti {$propId}: " . $propDefResponse->status());
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Error saat mengambil properti {$propId}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // Ekstrak metadata dari properti objek yang ada di respons API
+        if (isset($objectData['Properties'])) {
+            foreach ($objectData['Properties'] as $property) {
+                $propertyId = $property['PropertyDef'] ?? null;
+
+                if (!$propertyId) continue;
+
+                // Dapatkan definisi properti jika tersedia
+                $propertyDef = $propertyDefs[$propertyId] ?? null;
+                $propertyName = $propertyDef ? $propertyDef['name'] : "Properti {$propertyId}";
+                $dataType = $propertyDef ? $propertyDef['data_type'] : 0;
+                $required = $propertyDef ? $propertyDef['required'] : false;
+                $displayOrder = $propertyDef ? $propertyDef['display_order'] : 9999;
+
+                // Ekstrak nilai berdasarkan tipe data
+                $value = null;
+
+                if (isset($property['Value'])) {
+                    switch ($dataType) {
+                        case 1: // Teks
+                        case 2: // Integer
+                        case 3: // Float
+                        case 5: // Tanggal
+                        case 6: // Waktu
+                        case 7: // Timestamp
+                            $value = $property['Value']['Value'] ?? null;
+                            break;
+                        case 9: // Lookup
+                            $value = $property['Value']['DisplayValue'] ?? null;
+                            break;
+                        case 10: // Multi-select lookup
+                            if (isset($property['Value']['Items'])) {
+                                $values = [];
+                                foreach ($property['Value']['Items'] as $item) {
+                                    $values[] = $item['DisplayValue'] ?? '';
+                                }
+                                $value = implode(', ', $values);
+                            }
+                            break;
+                        default:
+                            $value = $property['Value']['DisplayValue'] ?? $property['Value']['Value'] ?? null;
+                    }
+                }
+
+                // Format tipe field tertentu untuk tampilan yang lebih baik
+                if ($dataType == 5 || $dataType == 7) { // Tanggal atau Timestamp
+                    if ($value) {
+                        try {
+                            $date = new \DateTime($value);
+                            $value = $date->format('d M Y');
+                        } catch (\Exception $e) {
+                            // Biarkan apa adanya jika parsing gagal
+                        }
+                    }
+                }
+
+                $metadata[$propertyId] = [
+                    'name' => $propertyName,
+                    'value' => $value,
+                    'data_type' => $dataType,
+                    'required' => $required,
+                    'display_order' => $displayOrder
+                ];
+            }
+        }
+
+        // Ambil properti yang belum ada secara terpisah
+                foreach ($requiredPropertyDefs as $propId => $isRequired) {
+                    if (!isset($metadata[$propId])) {
+                        // Properti ini belum ada, coba ambil secara terpisah
+                        try {
+                            // Properti URL di M-Files API
+                            $propValueUrl = "{$this->mfilesUrl}/objects/0/{$objectId}/{$version}/properties/{$propId}";
+
+                            Log::info("Mengambil properti terpisah: {$propId}", ['url' => $propValueUrl]);
+
+                            // Add a timeout for individual property requests
+                            $propValueResponse = Http::timeout(5)->withHeaders([
+                                'Accept' => 'application/json',
+                                'X-Authentication' => $authToken,
+                            ])->get($propValueUrl);
+
+                    if ($propValueResponse->successful()) {
+                        $propValueData = $propValueResponse->json();
+                        $propertyDef = $propertyDefs[$propId] ?? null;
+                        $dataType = $propertyDef ? $propertyDef['data_type'] : 0;
+
+                        // Ekstrak nilai
+                        $value = null;
+                        if (isset($propValueData['Value'])) {
+                            switch ($dataType) {
+                                case 1: // Teks
+                                case 2: // Integer
+                                case 3: // Float
+                                case 5: // Tanggal
+                                case 6: // Waktu
+                                case 7: // Timestamp
+                                    $value = $propValueData['Value']['Value'] ?? null;
+                                    break;
+                                case 9: // Lookup
+                                    $value = $propValueData['Value']['DisplayValue'] ?? null;
+                                    break;
+                                case 10: // Multi-select lookup
+                                    if (isset($propValueData['Value']['Items'])) {
+                                        $values = [];
+                                        foreach ($propValueData['Value']['Items'] as $item) {
+                                            $values[] = $item['DisplayValue'] ?? '';
+                                        }
+                                        $value = implode(', ', $values);
+                                    }
+                                    break;
+                                default:
+                                    $value = $propValueData['Value']['DisplayValue'] ?? $propValueData['Value']['Value'] ?? null;
+                            }
+                        }
+
+                        // Format tanggal jika perlu
+                        if ($dataType == 5 || $dataType == 7) { // Tanggal atau Timestamp
+                            if ($value) {
+                                try {
+                                    $date = new \DateTime($value);
+                                    $value = $date->format('d M Y');
+                                } catch (\Exception $e) {
+                                    // Biarkan apa adanya jika parsing gagal
+                                }
+                            }
+                        }
+
+                        $metadata[$propId] = [
+                            'name' => $propertyDef ? $propertyDef['name'] : "Properti {$propId}",
+                            'value' => $value,
+                            'data_type' => $dataType,
+                            'required' => $isRequired,
+                            'display_order' => $propertyDef ? $propertyDef['display_order'] : 9999
+                        ];
+
+                        Log::info("Berhasil mendapatkan properti {$propId}", [
+                            'name' => $metadata[$propId]['name'],
+                            'value' => $metadata[$propId]['value']
+                        ]);
+                    } else {
+                        Log::warning("Gagal mendapatkan properti {$propId}: " . $propValueResponse->status());
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Error saat mengambil properti {$propId}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // Pastikan properti dasar dokumen selalu tersedia
+        if (!isset($metadata['1870']) && isset($objectData['Title'])) {
+            $metadata['1870'] = [
+                'name' => 'Judul',
+                'value' => $objectData['Title'],
+                'data_type' => 1, // Text
+                'required' => true,
+                'display_order' => 0
+            ];
+        }
+
+        if (!isset($metadata['20']) && isset($objectData['Created'])) {
+            $metadata['20'] = [
+                'name' => 'Tanggal Dibuat',
+                'value' => $objectData['Created'],
+                'data_type' => 5, // Date
+                'required' => true,
+                'display_order' => 5
+            ];
+        }
+
+        if (!isset($metadata['21']) && isset($objectData['LastModified'])) {
+            $metadata['21'] = [
+                'name' => 'Tanggal Diperbarui',
+                'value' => $objectData['LastModified'],
+                'data_type' => 5, // Date
+                'required' => true,
+                'display_order' => 6
+            ];
+        }
+
+        // Tambahkan ID dokumen sebagai metadata
+        $metadata['id'] = [
+            'name' => 'ID Dokumen',
+            'value' => $objectId,
+            'data_type' => 1, // Text
+            'required' => true,
+            'display_order' => -1
+        ];
+
+        // Log metadata yang berhasil dikumpulkan
+        Log::info('Metadata berhasil dikumpulkan', [
+            'metadata_count' => count($metadata),
+            'metadata_keys' => array_keys($metadata)
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'document' => [
+                'id' => $objectId,
+                'version' => $objectData['ObjVer']['Version'] ?? $version,
+                'title' => $objectData['Title'] ?? 'Dokumen Tanpa Judul'
+            ],
+            'metadata' => $metadata
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error mengambil metadata dokumen', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

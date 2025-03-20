@@ -2549,5 +2549,6 @@ label[for="agreeTerms"] {
 
 </script>
 <script src="{{ asset('js/approval-requests.js') }}"></script>
+<script src="{{ asset('js/document-metadata.js') }}"></script>
 </body>
 </html>

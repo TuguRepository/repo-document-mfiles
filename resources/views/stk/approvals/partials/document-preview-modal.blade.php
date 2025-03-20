@@ -113,23 +113,92 @@
 <!-- Tambahkan script ini ke bawah modal -->
 <script>
     function handleSubmitRequest() {
-        // Generate reference number
-        const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
+    // Generate reference number
+    const refNumber = 'REF-' + Math.floor(Math.random() * 900000 + 100000);
 
-        // Update reference di modal sukses
-        document.getElementById('requestReferenceNumber').textContent = refNumber;
+    // Update reference di modal sukses
+    document.getElementById('requestReferenceNumber').textContent = refNumber;
 
-        // Sembunyi modal preview
-        bootstrap.Modal.getInstance(document.getElementById('documentPreviewModal')).hide();
+    // Sembunyi modal preview dengan benar
+    const previewModal = document.getElementById('documentPreviewModal');
+    const previewModalInstance = bootstrap.Modal.getInstance(previewModal);
+    previewModalInstance.hide();
 
-        // Tampilkan modal sukses
+    // Reset modal dan halaman dengan cara yang menyeluruh
+    setTimeout(() => {
+        // Hapus semua backdrop modal
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+            backdrop.remove();
+        });
+
+        // Reset state halaman
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        // Pastikan scroll tidak terkunci
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.paddingRight = '';
+    }, 200);
+
+    // Tampilkan modal sukses dengan sedikit delay
+    setTimeout(() => {
         new bootstrap.Modal(document.getElementById('requestSuccessModal')).show();
+    }, 300);
 
-        // Reset form
-        document.getElementById('formRequestDownload').reset();
+    // Reset form
+    document.getElementById('formRequestDownload').reset();
 
-        // Kembalikan ke tampilan preview
-        document.getElementById('downloadRequestForm').classList.add('d-none');
-        document.getElementById('documentPreviewContainer').classList.remove('d-none');
-    }
+    // Kembalikan ke tampilan preview
+    document.getElementById('downloadRequestForm').classList.add('d-none');
+    document.getElementById('documentPreviewContainer').classList.remove('d-none');
+}
+
+// Tambahkan event listener untuk semua tombol close
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle tombol close di semua modal
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Hapus backdrop dan reset scroll setelah modal tertutup
+            setTimeout(() => {
+                document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                    backdrop.remove();
+                });
+
+                // Reset body styles
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+
+                // Reset html styles
+                document.documentElement.style.overflow = '';
+                document.documentElement.style.paddingRight = '';
+            }, 200);
+        });
+    });
+
+    // Juga tambahkan event listener untuk modal itu sendiri
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Handler setelah modal benar-benar tertutup (event Bootstrap)
+            setTimeout(() => {
+                if (!document.querySelector('.modal.show')) {
+                    // Jika tidak ada modal lain yang terbuka
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                        backdrop.remove();
+                    });
+
+                    // Reset style body
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+
+                    // Reset html element
+                    document.documentElement.style.overflow = '';
+                    document.documentElement.style.paddingRight = '';
+                }
+            }, 200);
+        });
+    });
+});
 </script>

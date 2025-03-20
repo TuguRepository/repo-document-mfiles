@@ -1,3 +1,4 @@
+
     // Fungsi untuk mengekstrak ID dokumen dari berbagai sumber
     function extractDocumentIdFromContext() {
         try {

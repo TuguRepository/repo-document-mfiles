@@ -6,7 +6,7 @@ use App\Http\Controllers\STK\ApprovalController;
 use App\Http\Controllers\DownloadRequestController;
 use App\Http\Controllers\STKDocumentController;
 use App\Http\Controllers\MFilesAuthController;
-
+use App\Http\Controllers\STK\DocumentController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 });
@@ -61,4 +61,15 @@ Route::get('/stk/simple-search', [App\Http\Controllers\STKDocumentController::cl
 
 // Perbaiki route yang konflik dengan menggunakan ApprovalController secara langsung
 // dari namespace App\Http\Controllers\STK tanpa alias tambahan
-Route::post('/approve', [ApprovalController::class, 'approve'])->middleware('auth:sanctum');
+Route::post('/approve', [ApprovalController::class, 'approve']);
+// Route::middleware(['auth.jwt'])->group(function () {
+//     // Approval endpoints
+//     Route::post('/approve', [ApprovalController::class, 'approve']);
+//     Route::post('/reject', [ApprovalController::class, 'reject']);
+//     Route::get('/counts', [ApprovalController::class, 'getCounts']);
+//     Route::get('/requests', [ApprovalController::class, 'getRequests']);
+//     Route::get('/activities', [ApprovalController::class, 'getActivities']);
+
+//     // Document endpoints - Sesuaikan dengan method yang ada di controller
+//     Route::get('/document/{id}/preview', [ApprovalController::class, 'previewDocument']);
+// });

@@ -1851,7 +1851,7 @@ body {
                                     </div>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
-                                    <h5 class="mb-1">${doc.title || 'Dokumen Tanpa Judul'}</h5>
+                                    <h5 class="mb-1" style="color: #000000">${doc.title || 'Dokumen Tanpa Judul'}</h5>
                                     <div class="d-flex flex-wrap justify-content-between">
                                         <div>
                                             <span class="badge bg-primary me-2">${doc.jenis_stk || 'Tidak Dikategorikan'}</span>
@@ -2474,5 +2474,7 @@ previewFrame.onload = function() {
            </script>
            <script src="{{ asset('js/document-preview.js') }}"></script>
            <script src="{{ asset('js/approval-requests.js') }}"></script>
+           <!-- Tambahkan script untuk fitur metadata dokumen -->
+            <script src="{{ asset('js/document-metadata.js') }}"></script>
         </body>
         </html>

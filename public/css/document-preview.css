@@ -75,8 +75,8 @@ label[for="agreeTerms"] {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-45deg);
-    font-size: 2rem;
-    color: rgba(200, 0, 0, 0.2);
+    font-size: 3rem;
+    color: rgba(243, 7, 7, 0.831);
     white-space: nowrap;
     z-index: 10;
     pointer-events: none;

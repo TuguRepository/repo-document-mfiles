@@ -1,0 +1,122 @@
+/* Untuk debugging */
+.document-metadata.debug {
+    display: block !important;
+    border: 2px dashed red;
+    padding: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+}
+
+.metadata-debug-info {
+    background-color: #ffe8e8;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+/* Gaya untuk fitur metadata dokumen */
+.document-metadata {
+    padding: 10px;
+    margin-top: 10px;
+    border-top: 1px dashed #ddd;
+    background-color: #f8f9fa;
+    border-radius: 0 0 8px 8px;
+    font-size: 14px;
+}
+
+.metadata-loading,
+.metadata-error {
+    padding: 15px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.metadata-error {
+    color: #dc3545;
+}
+
+/* Gaya untuk metadata table */
+.metadata-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e9ecef;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.metadata-table th,
+.metadata-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+}
+
+.metadata-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.metadata-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.metadata-table tr:hover {
+    background-color: #e9ecef;
+}
+
+/* Tombol kopor clipboard */
+.metadata-copy-btn {
+    display: block;
+    margin: 10px 0;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.metadata-copy-btn:hover {
+    background-color: #e9ecef;
+}
+
+.metadata-copy-btn:active {
+    background-color: #dee2e6;
+}
+
+.metadata-toggle {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: transparent;
+    border: none;
+    color: #00205b;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 10;
+}
+
+.metadata-toggle:hover {
+    opacity: 1;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 32, 91, 0.1);
+    border-radius: 50%;
+    border-top-color: #00205b;
+    animation: putar 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes putar {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

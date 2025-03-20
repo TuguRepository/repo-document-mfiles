@@ -1,5 +1,5 @@
 <!-- resources/views/stk/approvals/partials/reject-modal.blade.php -->
-<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -8,6 +8,7 @@
             </div>
             <div class="modal-body">
                 <form id="rejectForm">
+                    <input type="hidden" id="reject-request-id" name="request_id">
                     <div class="mb-3">
                         <label for="rejectionReason" class="form-label">Alasan Penolakan <span class="text-danger">*</span></label>
                         <select class="form-select mb-2" id="rejectionReason" name="rejection_reason" required>
