@@ -661,10 +661,6 @@
   </div>
 </div>
 
-
-
-
-
         <!-- Summary Cards -->
         <div class="row mb-4" id="summary-cards">
             <div class="col-md-4 mb-3">

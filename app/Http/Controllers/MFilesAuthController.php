@@ -148,11 +148,6 @@ class MFilesAuthController extends Controller
             }
 
 
-            // Store in session
-            // $request->session()->put('user_authenticated', true);
-            // $request->session()->put('mfiles_token', $token);
-            // $request->session()->put('username', $validated['username']);
-
             // Return to frontend
             return response()->json([
                 'success' => true,
@@ -223,40 +218,5 @@ class MFilesAuthController extends Controller
         }
     }
 
-    /**
-     * Log user out by invalidating their session
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    // public function logout(Request $request)
-    // {
-    //     try {
-    //         // Log the logout attempt
-    //         Log::info('User logout attempt', [
-    //             'ip' => $request->ip(),
-    //             'user_agent' => $request->userAgent()
-    //         ]);
 
-    //         // Clear Laravel session if using it
-    //         if ($request->session()->has('mfiles_token')) {
-    //             $request->session()->forget('mfiles_token');
-    //         }
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Logout berhasil'
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('Logout error', [
-    //             'message' => $e->getMessage(),
-    //             'trace' => $e->getTraceAsString()
-    //         ]);
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Terjadi kesalahan saat logout: ' . $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 }
